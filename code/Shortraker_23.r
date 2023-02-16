@@ -1,15 +1,15 @@
 # GOA shortraker biomass estimation using the bottom trawl and longline survey indices
 
-# Stock assessment in 2022 (projected to 2023) based on Sept 2022 GPT
+# Stock assessment in 2023 (projected to 2024) based on Sept 2023 GPT
 # recommendations (endorsed by SSC at Oct 2022 SSC mtg):
 # https://meetings.npfmc.org/CommentReview/DownloadFile?p=36b50cbe-9340-4170-bba0-347da1b0054d.pdf&fileName=C5%20GOA%20Groundfish%20Plan%20Team%20Minutes.pdf
 # (1) The Team recommended excluding BTS data from 1984 and 1987 due to different survey
 # methodology and to continue utilizing a two-survey model.
-# (2) The Team recommended simplifying the model naming convention where Model 18 represents the
-# status quo model, Model 18* is the corrected model in TMB with new data, and Model 22 is the
+# (2) The Team recommended simplifying the model naming convention where Model 19 represents the
+# status quo model, Model 19* is the corrected model in TMB with new data, and Model 22 is the
 # model with additional observation error on BTS and LLS.
-# (3) The Team recommended discontinuing the misspecified status quo model (Model 18) and bringing
-# forward both the corrected model (Model 18*) and the mod
+# (3) The Team recommended discontinuing the misspecified status quo model (Model 19) and bringing
+# forward both the corrected model (Model 19*) and the mod
 
 # Model naming conventions:
 # Model 19* = m19s: 1990-pres. corrected version of status quo model
@@ -20,7 +20,7 @@
 # Set up ----
 
 # assessment year
-YEAR <- 2023
+YEAR <- 2022
 
 # Consider whether the rema package needs to be 'updated'
 # install.packages("devtools")
@@ -69,16 +69,10 @@ input <- prepare_rema_input(model_name = 'Model 19* w/ 84/87',
                             # RPWs are summable
                             sum_cpue_index = TRUE,
                             end_year = YEAR + 1,
-                            # three process error parameters (log_PE) estimated,
-                            # indexed as follows for each biomass survey stratum
-                            # (shared within an area across depths):
                             PE_options = list(pointer_PE_biomass = c(1, 1, 1)),
                             q_options = list(
                               # LLS strata (n=3) indexed as follows for the
-                              # biomass strata (n=9)
                               pointer_biomass_cpue_strata = c(1, 2, 3),
-                              # one scaling parameters (log_q) estimated, shared
-                              # over all three LLS strata
                               pointer_q_cpue = c(1, 2, 3)))
 m19b <- fit_rema(input)
 out19b <- tidy_rema(m19b)
@@ -141,7 +135,7 @@ m23 <- fit_rema(input)
 out23 <- tidy_rema(m23)
 out23$parameter_estimates
 
-# Compare M18* and M22 ----
+# Compare M19* and M23 ----
 compare <- compare_rema_models(rema_models = list(m19b, m23b))
 compare$aic
 
@@ -275,8 +269,8 @@ cpue_dat %>% filter(year %in% c(2021, 2022)) %>%
   pivot_wider(id_cols = c(strata), names_from = year, values_from = cpue) %>%
   mutate(percent_change = (`2022`-`2021`)/`2021`)
 
-old <- out18s$total_predicted_biomass %>% filter(year == 2022) %>% pull(pred)
-new <- out22$total_predicted_biomass %>% filter(year == 2022) %>% pull(pred)
+old <- out19s$total_predicted_biomass %>% filter(year == 2022) %>% pull(pred)
+new <- out23$total_predicted_biomass %>% filter(year == 2022) %>% pull(pred)
 (new-old)/old
 
 # Table for predicted biomass by strata with total LCI/UCI
