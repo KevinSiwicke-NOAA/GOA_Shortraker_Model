@@ -33,10 +33,10 @@ ll.len %>%
   theme(legend.position = "top") +
   xlab("Length (cm)") +
   ylab("Proportion of LL survey RPNs") +
-  geom_text(aes(x=18, y=0.075, label=year)) +
-  geom_text(aes(x=18, y=0.055, label=paste0("(", format(round(mean, digits=1), nsmall = 1) , " cm)"))) +
+  geom_text(aes(x=30, y=0.075, label=year)) +
+  geom_text(aes(x=30, y=0.055, label=paste0("(", format(round(mean, digits=1), nsmall = 1) , " cm)"))) +
   scale_y_continuous(expand=c(0,0), limits=c(0,0.099)) +
-  scale_x_continuous(breaks=seq(15,75,10), limits=c(12,78)) +
+  scale_x_continuous(breaks=seq(25,115,10), limits=c(22,118)) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
@@ -70,10 +70,10 @@ len %>%
         theme(legend.position = "top") +
         xlab("Length (cm)") +
         ylab("Proportion of trawl survey population") +
-        geom_text(aes(x=60, y=0.055, label=year)) +
-        geom_text(aes(x=60, y=0.03, label=paste0("(", format(round(mean, digits=1), nsmall = 1) , " cm)"))) +
+        geom_text(aes(x=30, y=0.065, label=year)) +
+        geom_text(aes(x=30, y=0.045, label=paste0("(", format(round(mean, digits=1), nsmall = 1) , " cm)"))) +
         scale_y_continuous(expand=c(0,0), limits=c(0,0.09)) +
-        scale_x_continuous(expand=c(0,0), breaks=seq(0,110,10)) +
+        scale_x_continuous(expand=c(0,0), breaks=seq(25,115,10)) +
         theme_bw() +
         theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
@@ -168,9 +168,9 @@ ggplot() +
   scale_fill_discrete(type = c('red', 'blue')) +
   xlab("Length (cm)") +
   ylab("Length composition by survey") +
-  geom_text(data=all.mean, aes(x=c(70,70),  y=c(0.055, .045), label=paste0(survey, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
-  scale_y_continuous(expand=c(0,0), limits=c(0,0.085)) +
-  scale_x_continuous(expand=c(0,5), breaks=seq(5,85,10)) +
+  geom_text(data=all.mean, aes(x=c(23,23),  y=c(0.045, .04), label=paste0(survey, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,0.055)) +
+  scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
   # facet_wrap(~survey, ncol=1) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
@@ -195,9 +195,9 @@ ggplot(lengths) +
   scale_fill_discrete(type = c('blue', 'red')) +
   xlab("Length (cm)") +
   ylab("Length composition by gear type") +
-  geom_text(data=mean_lengths, aes(x=c(60,60),  y=c(0.055, .05), label=paste0(Gear, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
-  scale_y_continuous(expand=c(0,0), limits=c(0,0.075)) +
-  scale_x_continuous(expand=c(0,5), breaks=seq(5,85,10)) +
+  geom_text(data=mean_lengths, aes(x=c(85,85),  y=c(0.055, .05), label=paste0(Gear, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,0.06)) +
+  scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 

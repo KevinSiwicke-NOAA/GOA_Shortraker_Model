@@ -141,20 +141,23 @@ compare$aic
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'none') +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
                      geom_line() +
                      labs(x = NULL, y = NULL, subtitle = 'Trawl survey biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     ggplot2::scale_fill_viridis_d(direction = -1) +
-                     ggplot2::scale_colour_viridis_d(direction = -1),
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 60000)) +
+                     scale_colour_viridis_d(direction = -1),
                    compare$plots$cpue_by_strata  +
-                     facet_wrap(~strata, ncol = 1)  +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
                      geom_line() +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     ggplot2::scale_fill_viridis_d(direction = -1) +
-                     ggplot2::scale_colour_viridis_d(direction = -1),
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 40000)) +
+                     scale_colour_viridis_d(direction = -1),
                    ncol = 2,
-                   rel_widths = c(1.5, 1))
+                   rel_widths = c(0.85, 1))
 
 ggsave(filename = paste0(out_path, '/M19b_M23b_fits.png'),
        dpi = 400, bg = 'white', units = 'in', height = 9, width = 14)
@@ -174,20 +177,23 @@ compare$aic %>% write_csv(paste0(out_path, '/m19s_m23_aic.csv'))
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'none') +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
                      geom_line() +
                      labs(x = NULL, y = NULL, subtitle = 'Trawl survey biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     ggplot2::scale_fill_viridis_d(direction = -1) +
-                     ggplot2::scale_colour_viridis_d(direction = -1),
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 60000)) +
+                     scale_colour_viridis_d(direction = -1),
                    compare$plots$cpue_by_strata  +
-                     facet_wrap(~strata, ncol = 1)  +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
                      geom_line() +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     ggplot2::scale_fill_viridis_d(direction = -1) +
-                     ggplot2::scale_colour_viridis_d(direction = -1),
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 40000)) +
+                     scale_colour_viridis_d(direction = -1),
                    ncol = 2,
-                   rel_widths = c(1.5, 1))
+                   rel_widths = c(0.85, 1))
 
 ggsave(filename = paste0(out_path, '/m19s_m23_fits.png'),
        dpi = 400, bg = 'white', units = 'in', height = 9, width = 14)

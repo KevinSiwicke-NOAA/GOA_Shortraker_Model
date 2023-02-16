@@ -9,7 +9,7 @@ channel_akfin <- DBI::dbConnect (odbc::odbc(),
                                  uid = keyring::key_list(db)$username,
                                  pwd =  keyring::key_get(db, keyring::key_list(db)$username))
 
-lls.sst.len <- dbGetQuery(channel_akfin, 
+lls.sr.len <- dbGetQuery(channel_akfin, 
                           "select    *
                 from      afsc.lls_length_rpn_by_area_all_strata
                 where     species_code = '30576' 
@@ -18,7 +18,7 @@ lls.sst.len <- dbGetQuery(channel_akfin,
   filter(year > 1991, !council_sablefish_management_area == "Aleutians",
          !council_sablefish_management_area == "Bering Sea")
 
-bts.sst.len <- dbGetQuery(channel_akfin, 
+bts.sr.len <- dbGetQuery(channel_akfin, 
                           "select    *
                 from      afsc.race_sizestratumaigoa 
                 where     species_code = '30576'") %>% 
@@ -26,7 +26,7 @@ bts.sst.len <- dbGetQuery(channel_akfin,
   filter(year > 1989, survey == "GOA")
 
 #Fishery Lengths
-fsh.sst.len <- dbGetQuery(channel_akfin,
+fsh.sr.len <- dbGetQuery(channel_akfin,
                           "select    *
                 from      norpac.debriefed_length
                 where     species = 326 and

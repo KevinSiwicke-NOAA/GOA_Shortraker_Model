@@ -47,21 +47,14 @@ biom <- dbGetQuery(channel_akfin,
   rename_all(tolower)
 
 biomass <- biom %>% 
-  mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310), 'WGOA (0-500 m)',
-                             ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330), 'CGOA (0-500 m)',
-                                    ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351), 'EGOA (0-500 m)',
-                                           ifelse(stratum == 410, 'WGOA (501-700 m)',
-                                                  ifelse(stratum == 510, 'WGOA (701-1000 m)',
-                                                         ifelse(stratum %in% c(420, 430), 'CGOA (501-700 m)',
-                                                                ifelse(stratum %in% c(520, 530), 'CGOA (701-1000 m)',
-                                                                       ifelse(stratum %in% c(440, 450), 'EGOA (501-700 m)',
-                                                                              ifelse(stratum %in% c(540, 550), 'EGOA (701-1000 m)', NA)))))))))) %>% 
+  mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
+                         ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
+                                ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
   group_by(year, strata) %>% 
   summarize(n = n(), biomass = sum(stratum_biomass, na.rm = TRUE),
             cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
 
-biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 9), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata')) %>% 
-  mutate(cv = ifelse (cv == 0, 0.1, cv)) 
+biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
 
 model_yrs <- 1984:YEAR
 
@@ -72,3 +65,4 @@ model_yrs <- 1984:YEAR
 # This is the data that is brought into rema
 model_dat <- list('biomass_dat' = biomass_dat, 'cpue_dat' = cpue_dat, 
                   'model_yrs' = model_yrs)
+
