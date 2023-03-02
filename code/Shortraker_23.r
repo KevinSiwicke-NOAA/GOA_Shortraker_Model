@@ -1,16 +1,5 @@
 # GOA shortraker biomass estimation using the bottom trawl and longline survey indices
 
-# Stock assessment in 2023 (projected to 2024) based on Sept 2023 GPT
-# recommendations (endorsed by SSC at Oct 2022 SSC mtg):
-# https://meetings.npfmc.org/CommentReview/DownloadFile?p=36b50cbe-9340-4170-bba0-347da1b0054d.pdf&fileName=C5%20GOA%20Groundfish%20Plan%20Team%20Minutes.pdf
-# (1) The Team recommended excluding BTS data from 1984 and 1987 due to different survey
-# methodology and to continue utilizing a two-survey model.
-# (2) The Team recommended simplifying the model naming convention where Model 19 represents the
-# status quo model, Model 19* is the corrected model in TMB with new data, and Model 22 is the
-# model with additional observation error on BTS and LLS.
-# (3) The Team recommended discontinuing the misspecified status quo model (Model 19) and bringing
-# forward both the corrected model (Model 19*) and the mod
-
 # Model naming conventions:
 # Model 19* = m19s: 1990-pres. corrected version of status quo model
 # Model 19* w/ 1984/97 = m19b: 1990-pres. corrected version of status quo model
@@ -66,6 +55,7 @@ input <- prepare_rema_input(model_name = 'Model 19* w/ 84/87',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
+                            wt_cpue = 0.5,
                             # RPWs are summable
                             sum_cpue_index = TRUE,
                             end_year = YEAR + 1,
@@ -83,6 +73,7 @@ input <- prepare_rema_input(model_name = 'Model 19*',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
+                            wt_cpue = 0.5,
                             sum_cpue_index = TRUE,
                             # start at 1990 instead of 1984
                             start_year = 1990,
@@ -95,28 +86,63 @@ m19s <- fit_rema(input)
 out19s <- tidy_rema(m19s)
 out19s$parameter_estimates
 
-# Model 23 extra biomass + LLS RPW obs error -----
-input <- prepare_rema_input(model_name = 'Model 23 w/ 84/87',
+# Model 23.1 is Model 19* with LLS from 0.5 weight to 1.0 weight -----
+input <- prepare_rema_input(model_name = 'Model 23.1 (LLS_wt = 1)',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
                             sum_cpue_index = TRUE,
+                            start_year = 1990,
+                            end_year = YEAR + 1,
+                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)),
+                            q_options = list(
+                              pointer_biomass_cpue_strata = c(1, 2, 3),
+                              pointer_q_cpue = c(1, 2, 3)))
+
+m23.1 <- fit_rema(input)
+out23.1 <- tidy_rema(m23.1)
+out23.1$parameter_estimates
+
+# Model 23.2 is Model 23.1 with additional obs error for BTS -----
+input <- prepare_rema_input(model_name = 'Model 23.2 (extra BTS OE)',
+                            multi_survey = 1,
+                            biomass_dat = biomass_dat,
+                            cpue_dat = cpue_dat,
+                            sum_cpue_index = TRUE,
+                            # start at 1990 instead of 1984
+                            start_year = 1990,
                             end_year = YEAR + 1,
                             PE_options = list(pointer_PE_biomass = c(1, 1, 1)),
                             q_options = list(
                               pointer_biomass_cpue_strata = c(1, 2, 3),
                               pointer_q_cpue = c(1, 2, 3)),
-                            # ESTIMATE EXTRA biomass CV
-                            extra_biomass_cv = list(assumption = 'extra_cv'),
-                            # ESTIMATE EXTRA LLS RPW CV
+                            extra_biomass_cv = list(assumption = 'extra_cv'))
+
+m23.2 <- fit_rema(input)
+out23.2 <- tidy_rema(m23.2)
+out23.2$parameter_estimates
+
+# Model 23.3 is Model 23.1 with additional obs error for LLS -----
+input <- prepare_rema_input(model_name = 'Model 23.3 (extra LLS OE)',
+                            multi_survey = 1,
+                            biomass_dat = biomass_dat,
+                            cpue_dat = cpue_dat,
+                            sum_cpue_index = TRUE,
+                            # start at 1990 instead of 1984
+                            start_year = 1990,
+                            end_year = YEAR + 1,
+                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)),
+                            q_options = list(
+                              pointer_biomass_cpue_strata = c(1, 2, 3),
+                              pointer_q_cpue = c(1, 2, 3)),
                             extra_cpue_cv = list(assumption = 'extra_cv'))
 
-m23b <- fit_rema(input)
-out23b <- tidy_rema(m23b)
-out23b$parameter_estimates
+m23.3 <- fit_rema(input)
+out23.3 <- tidy_rema(m23.3)
+out23.3$parameter_estimates
 
-# Model 23 no 1984/87 -----
-input <- prepare_rema_input(model_name = 'Model 23',
+# Model 23.4 is Model 23.1 with additional obs error for BTS and LLS -----
+input <- prepare_rema_input(model_name = 'Model 23.4 (Both extra OE)',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
@@ -131,12 +157,12 @@ input <- prepare_rema_input(model_name = 'Model 23',
                             extra_biomass_cv = list(assumption = 'extra_cv'),
                             extra_cpue_cv = list(assumption = 'extra_cv'))
 
-m23 <- fit_rema(input)
-out23 <- tidy_rema(m23)
-out23$parameter_estimates
+m23.4 <- fit_rema(input)
+out23.4 <- tidy_rema(m23.4)
+out23.4$parameter_estimates
 
-# Compare M19* and M23 ----
-compare <- compare_rema_models(rema_models = list(m19b, m23b))
+# Compare M19* with and without 1984/87 ----
+compare <- compare_rema_models(rema_models = list(m19b, m19s))
 compare$aic
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
@@ -159,8 +185,8 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                    ncol = 2,
                    rel_widths = c(0.85, 1))
 
-ggsave(filename = paste0(out_path, '/M19b_M23b_fits.png'),
-       dpi = 400, bg = 'white', units = 'in', height = 9, width = 14)
+ggsave(filename = paste0(out_path, '/M19b_M19s_fits.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 9, width = 14)
 
 compare$plots$total_predicted_biomass +
   labs(subtitle = 'Total predicted biomass (t)',
@@ -168,12 +194,12 @@ compare$plots$total_predicted_biomass +
   ggplot2::scale_fill_viridis_d(direction = -1) +
   ggplot2::scale_colour_viridis_d(direction = -1)
 
-ggsave(filename = paste0(out_path, '/M19b_M23b_totalbiomass.png'),
-       dpi = 400, bg = 'white', units = 'in', height = 3.5, width = 8)
+ggsave(filename = paste0(out_path, '/M19b_M19s_totalbiomass.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)
 
-# Compare M19* and M23 no 1984/87----
-compare <- compare_rema_models(rema_models = list(m19s, m23))
-compare$aic %>% write_csv(paste0(out_path, '/m19s_m23_aic.csv'))
+# Compare OE options M231, M23.2, M23.3, M23.4 ----
+compare <- compare_rema_models(rema_models = list(m23.1, m23.2, m23.3, m23.4))
+compare$aic %>% write_csv(paste0(out_path, '/m23.1_23.2_23.3_23.4_aic.csv'))
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'none') +
@@ -195,8 +221,8 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                    ncol = 2,
                    rel_widths = c(0.85, 1))
 
-ggsave(filename = paste0(out_path, '/m19s_m23_fits.png'),
-       dpi = 400, bg = 'white', units = 'in', height = 9, width = 14)
+ggsave(filename = paste0(out_path, '/m23.1_23.2_23.3_23.4_fits.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 9, width = 14)
 
 compare$plots$total_predicted_biomass +
   labs(x = NULL, y = NULL, subtitle = 'Total predicted biomass (t)',
@@ -204,11 +230,11 @@ compare$plots$total_predicted_biomass +
   ggplot2::scale_fill_viridis_d(direction = -1) +
   ggplot2::scale_colour_viridis_d(direction = -1)
 
-ggsave(filename = paste0(out_path, '/m19s_m23_totalbiomass.png'),
-       dpi = 400, bg = 'white', units = 'in', height = 3.5, width = 8)
+ggsave(filename = paste0(out_path, '/m23.1_23.2_23.3_23.4_totalbiomass.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)
 
 # compare short and long time series ----
-compare <- compare_rema_models(rema_models = list(m19b, m19s, m23b, m23))
+compare <- compare_rema_models(rema_models = list(m23.1, m23.2, m23, m23))
 
 compare$plots$total_predicted_biomass +
   labs(x = NULL, y = NULL, subtitle = 'Total predicted biomass (t)',

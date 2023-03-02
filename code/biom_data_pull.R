@@ -46,6 +46,16 @@ biom <- dbGetQuery(channel_akfin,
                 ") %>% 
   rename_all(tolower)
 
+strata <- dbGetQuery(channel_akfin, 
+                    "select    *
+                from      afsc.race_goastrataaigoa
+                where     survey = 'GOA'
+                ") %>% 
+  rename_all(tolower)
+
+biom2 <- left_join(biom, strata, by = c("stratum"))  
+
+# Using all data like previous model
 biomass <- biom %>% 
   mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
                          ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
@@ -57,6 +67,17 @@ biomass <- biom %>%
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
 
 model_yrs <- 1984:YEAR
+
+# biomass_alt <- biom2 %>% 
+#   filter(stratum_type == 'SLOPE' | stratum_type == 'GULLY') %>% 
+#   filter(min_depth > 200, min_depth < 701) %>% 
+#   mutate(strata = ifelse(regulatory_area_name == "WESTERN GOA", "WGOA",
+#                          ifelse(regulatory_area_name == "EASTERN GOA", "EGOA", "CGOA"))) %>% 
+#   group_by(year, strata) %>% 
+#   summarize(n = n(), biomass = sum(stratum_biomass, na.rm = TRUE),
+#             cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
+# 
+# biomass_alt_dat <- left_join(data.frame('year' = rep(unique(biomass_alt$year), each = 3), 'strata' = rep(unique(biomass_alt$strata), length(unique(biomass_alt$year)))), biomass_alt, by = c('year', 'strata'))
 
 # ggplot(biomass_dat, aes(year, biomass)) +
 #   geom_line() +
