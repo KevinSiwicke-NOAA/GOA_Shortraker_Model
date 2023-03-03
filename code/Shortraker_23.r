@@ -1,9 +1,10 @@
 # GOA shortraker biomass estimation using the bottom trawl and longline survey indices
 
 # Model naming conventions:
+# Model 1 = m1 is biomass only for comparison
 # Model 19* = m19s: 1990-pres. corrected version of status quo model
 # Model 19* w/ 1984/97 = m19b: 1990-pres. corrected version of status quo model
-# Model 22 is 19 with extra obs err where= m22.1 (xtra BTS OE), m22.2 (xtra LLS OE), m22.3 is extra for both surveys
+# Model 22 is 19* with extra obs err where m22.1 (xtra BTS OE), m22.2 (xtra LLS OE), m22.3 is extra for both surveys
 # Model 23.1  = m23.1, changes weight of LLS to 1.0 and other
 # from 23.1, then m23.2 (xtra BTS OE), m23.3 (xtra LLS OE), and m23.4 (both xtra OE)
 
@@ -50,7 +51,16 @@ biomass_dat %>%
 cpue_dat <- model_dat$cpue_dat 
 cpue_dat %>% 
   write_csv(paste0(dat_path, "/goa_sr_rpw_", YEAR, ".csv"))
-  
+ 
+# Model BTS only m1 ----
+input <- prepare_rema_input(model_name = 'BTS only Model',
+                            biomass_dat = biomass_dat,
+                            start_year = 1990,
+                            end_year = YEAR + 1,
+                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)))
+m1 <- fit_rema(input)
+out1 <- tidy_rema(m1)
+out1$parameter_estimates 
 
 # Model 19* ----
 input <- prepare_rema_input(model_name = 'Model 19* w/ 84/87',
@@ -87,15 +97,6 @@ input <- prepare_rema_input(model_name = 'Model 19*',
 m19s <- fit_rema(input)
 out19s <- tidy_rema(m19s)
 out19s$parameter_estimates
-
-# Model BTS only m1* ----
-input <- prepare_rema_input(model_name = 'BTS only Model',
-                            biomass_dat = biomass_dat,
-                            end_year = YEAR + 1,
-                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)))
-m1 <- fit_rema(input)
-out1 <- tidy_rema(m1)
-out1$parameter_estimates
 
 # Model 22.1 is Model 19* with additional OE -----
 input <- prepare_rema_input(model_name = 'Model 22.1 (19* w/ extra BTS OE)',
@@ -170,7 +171,7 @@ out23.1 <- tidy_rema(m23.1)
 out23.1$parameter_estimates
 
 # Model 23.2 is Model 23.1 with additional obs error for BTS -----
-input <- prepare_rema_input(model_name = 'Model 23.2 (extra BTS OE)',
+input <- prepare_rema_input(model_name = 'Model 23.2 (23.1 w/ extra BTS OE)',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
@@ -189,7 +190,7 @@ out23.2 <- tidy_rema(m23.2)
 out23.2$parameter_estimates
 
 # Model 23.3 is Model 23.1 with additional obs error for LLS -----
-input <- prepare_rema_input(model_name = 'Model 23.3 (extra LLS OE)',
+input <- prepare_rema_input(model_name = 'Model 23.3 (23.1 w/ extra LLS OE)',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
@@ -208,7 +209,7 @@ out23.3 <- tidy_rema(m23.3)
 out23.3$parameter_estimates
 
 # Model 23.4 is Model 23.1 with additional obs error for BTS and LLS -----
-input <- prepare_rema_input(model_name = 'Model 23.4 (Both extra OE)',
+input <- prepare_rema_input(model_name = 'Model 23.4 (23.1 w/ Both extra OE)',
                             multi_survey = 1,
                             biomass_dat = biomass_dat,
                             cpue_dat = cpue_dat,
@@ -376,7 +377,7 @@ ggsave(filename = paste0(out_path, '/m23.1_23.2_23.3_23.4_totalbiomass.png'),
 # but that was the worst by AIC...this might make the more sense to use
 # 
 
-# Compare OE options M23.1, M23.2, M23.3, M23.4 ----
+# Compare OE options M1, M19*, M22.2, M23.3 ----
 compare <- compare_rema_models(rema_models = list(m1, m19s, m22.2, m23.3))
 compare$aic %>% write_csv(paste0(out_path, '/m1_m19s_m22.2_23.3_aic.csv'))
 # AIC with extra OE for BTS is the best, as the extra OE on the LLS does not add anything
