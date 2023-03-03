@@ -3,8 +3,9 @@
 # Model naming conventions:
 # Model 19* = m19s: 1990-pres. corrected version of status quo model
 # Model 19* w/ 1984/97 = m19b: 1990-pres. corrected version of status quo model
-# Model 23 = m23: 1990-pres. xtra observation error for BTS and LLS
-# Model 23 w/ 1984/87 = m23b: 1990-pres. xtra observation error for BTS and LLS
+# Model 22 is 19 with extra obs err where= m22.1 (xtra BTS OE), m22.2 (xtra LLS OE), m22.3 is extra for both surveys
+# Model 23.1  = m23.1, changes weight of LLS to 1.0 and other
+# from 23.1, then m23.2 (xtra BTS OE), m23.3 (xtra LLS OE), and m23.4 (both xtra OE)
 
 # Set up ----
 
@@ -50,6 +51,7 @@ cpue_dat <- model_dat$cpue_dat
 cpue_dat %>% 
   write_csv(paste0(dat_path, "/goa_sr_rpw_", YEAR, ".csv"))
   
+
 # Model 19* ----
 input <- prepare_rema_input(model_name = 'Model 19* w/ 84/87',
                             multi_survey = 1,
@@ -85,6 +87,15 @@ input <- prepare_rema_input(model_name = 'Model 19*',
 m19s <- fit_rema(input)
 out19s <- tidy_rema(m19s)
 out19s$parameter_estimates
+
+# Model BTS only m1* ----
+input <- prepare_rema_input(model_name = 'BTS only Model',
+                            biomass_dat = biomass_dat,
+                            end_year = YEAR + 1,
+                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)))
+m1 <- fit_rema(input)
+out1 <- tidy_rema(m1)
+out1$parameter_estimates
 
 # Model 22.1 is Model 19* with additional OE -----
 input <- prepare_rema_input(model_name = 'Model 22.1 (19* w/ extra BTS OE)',
@@ -364,6 +375,42 @@ ggsave(filename = paste0(out_path, '/m23.1_23.2_23.3_23.4_totalbiomass.png'),
 # The smoothest line is the one with only including an extra OE on the LLS
 # but that was the worst by AIC...this might make the more sense to use
 # 
+
+# Compare OE options M23.1, M23.2, M23.3, M23.4 ----
+compare <- compare_rema_models(rema_models = list(m1, m19s, m22.2, m23.3))
+compare$aic %>% write_csv(paste0(out_path, '/m1_m19s_m22.2_23.3_aic.csv'))
+# AIC with extra OE for BTS is the best, as the extra OE on the LLS does not add anything
+cowplot::plot_grid(compare$plots$biomass_by_strata +
+                     theme(legend.position = 'none') +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
+                     geom_line() +
+                     labs(x = NULL, y = NULL, subtitle = 'Trawl survey biomass (t)',
+                          fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 60000)) +
+                     scale_colour_viridis_d(direction = -1),
+                   compare$plots$cpue_by_strata  +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
+                     geom_line() +
+                     labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
+                          fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
+                     scale_fill_viridis_d(direction = -1) +
+                     coord_cartesian(ylim=c(0, 40000)) +
+                     scale_colour_viridis_d(direction = -1),
+                   ncol = 2,
+                   rel_widths = c(0.85, 1))
+
+ggsave(filename = paste0(out_path, '/m1_m19s_m22.2_23.3_fits.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 9, width = 14)
+
+compare$plots$total_predicted_biomass +
+  labs(x = NULL, y = NULL, subtitle = 'Total predicted biomass (t)',
+       fill = NULL, colour = NULL) +
+  ggplot2::scale_fill_viridis_d(direction = -1) +
+  ggplot2::scale_colour_viridis_d(direction = -1)
+
+ggsave(filename = paste0(out_path, '/m1_m19s_m22.2_23.3_totalbiomass.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)
 
 
 # # compare short and long time series ----
