@@ -117,7 +117,7 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 40000)) +
+                     coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    ncol = 2,
                    rel_widths = c(0.85, 1))
@@ -171,7 +171,7 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 40000)) +
+                     coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    ncol = 2,
                    rel_widths = c(0.85, 1))
@@ -248,7 +248,7 @@ out23.4 <- tidy_rema(m23.4)
 out23.4$parameter_estimates
 
 # Compare OE options M19*, M23.1, M23.2, M23.3, M23.4 ----
-compare <- compare_rema_models(rema_models = list(m19s, m23.1, m23.2, m23.3, m23.4))
+compare <- compare_rema_models(rema_models = list(m19s, m23.3, m23.4))
 compare$aic %>% write_csv(paste0(out_path, '/m23.1_23.2_23.3_23.4_aic.csv'))
 # AIC with extra OE for BTS is the best, as the extra OE on the LLS does not add anything
 cowplot::plot_grid(compare$plots$biomass_by_strata +
@@ -266,7 +266,7 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 40000)) +
+                     coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    ncol = 2,
                    rel_widths = c(0.85, 1))
