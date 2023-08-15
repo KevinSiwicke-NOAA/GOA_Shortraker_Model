@@ -1,0 +1,37 @@
+<SQL>
+SELECT
+  "YEAR" AS "year",
+  "COUNTRY" AS "country",
+  "VESSEL_NUMBER" AS "vessel_number",
+  "STATION_NUMBER" AS "station_number",
+  "SPECIES_CODE" AS "species_code",
+  "COMMON_NAME" AS "common_name",
+  "STRATUM_DESCRIPTION" AS "stratum_description",
+  "GEOGRAPHIC_AREA_NAME" AS "geographic_area_name",
+  "COUNCIL_SABLEFISH_MGMT_AREA" AS "council_sablefish_mgmt_area",
+  "SEX" AS "sex",
+  "LENGTH" AS "length",
+  "FREQUENCY" AS "frequency",
+  "START_LATITUDE" AS "start_latitude",
+  "START_HEMI_NS" AS "start_hemi_ns",
+  "START_LONGITUDE" AS "start_longitude",
+  "START_HEMI_EW" AS "start_hemi_ew",
+  "END_LATITUDE" AS "end_latitude",
+  "END_HEMI_NS" AS "end_hemi_ns",
+  "END_LONGITUDE" AS "end_longitude",
+  "END_HEMI_EW" AS "end_hemi_ew",
+  "CRUISE_STATION_ID" AS "cruise_station_id",
+  "HAUL_DATE" AS "haul_date",
+  "EXPLOITABLE" AS "exploitable",
+  "NMFS_AREA_CODE" AS "nmfs_area_code",
+  "GEOGRAPHIC_AREA_CODE" AS "geographic_area_code",
+  "STATION_TYPE_DESCRIPTION" AS "station_type_description",
+  "AKFIN_LOAD_DATE" AS "akfin_load_date",
+  "STRATUM" AS "stratum"
+FROM (afsc.lls_length_summary_view) "q01"
+WHERE
+  ("YEAR" <= 2022.0) AND
+  ("SPECIES_CODE" IN (30576.0)) AND
+  ("COUNTRY" IN ('United States')) AND
+  ("COUNCIL_SABLEFISH_MGMT_AREA" IN ('Western Gulf of Alaska', 'Central Gulf of Alaska', 'West Yakutat', 'East Yakutat/Southeast'))
+ORDER BY "year"

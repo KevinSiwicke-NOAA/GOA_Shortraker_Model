@@ -61,7 +61,7 @@ biomass <- biom %>%
                          ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
                                 ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
   group_by(year, strata) %>% 
-  summarize(n = n(), biomass = sum(stratum_biomass, na.rm = TRUE),
+  summarize(n = n(), total_catch = sum(catch_count), biomass = sum(stratum_biomass, na.rm = TRUE),
             cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
 
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
@@ -80,10 +80,9 @@ model_yrs <- 1984:YEAR
 # biomass_alt_dat <- left_join(data.frame('year' = rep(unique(biomass_alt$year), each = 3), 'strata' = rep(unique(biomass_alt$strata), length(unique(biomass_alt$year)))), biomass_alt, by = c('year', 'strata'))
 
 # ggplot(biomass_dat, aes(year, biomass)) +
-#   geom_line() +
+#   geom_line() +data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAWElEQVR42mNgGPTAxsZmJsVqQApgmGw1yApwKcQiT7phRBuCzzCSDSHGMKINIeDNmWQlA2IigKJwIssQkHdINgxfmBBtGDEBS3KCxBc7pMQgMYE5c/AXPwAwSX4lV3pTWwAAAABJRU5ErkJggg==
 #   facet_wrap(~strata)
 
 # This is the data that is brought into rema
 model_dat <- list('biomass_dat' = biomass_dat, 'cpue_dat' = cpue_dat, 
                   'model_yrs' = model_yrs)
-
