@@ -13,9 +13,9 @@
 # assessment year
 YEAR <- 2022
 
-# Consider whether the rema package needs to be 'updated'
+# Consider whether the rema package needs to be 'updated' - will need to update to get new extra_cv fxns
 # install.packages("devtools")
-# devtools::install_github("afsc-assessments/rema", dependencies = TRUE, build_vignettes = TRUE)
+# devtools::install_github("afsc-assessments/rema", dependencies = TRUE, build_vignettes = TRUE) #, force = TRUE
 
 libs <- c('rema', 'readr', 'dplyr', 'tidyr', 'ggplot2', 'cowplot')
 if(length(libs[which(libs %in% rownames(installed.packages()) == FALSE )]) > 0) {install.packages(libs[which(libs %in% rownames(installed.packages()) == FALSE)])}
@@ -209,6 +209,9 @@ input <- prepare_rema_input(model_name = 'Model 23.2 (23.1 w/ extra BTS OE)',
 
 m23.2 <- fit_rema(input)
 out23.2 <- tidy_rema(m23.2)
+out23.2 <- tidy_extra_cv(out23.2) # adds a few new columns to biomass_by_strata and/or cpue_by_strata with the 'total' observation error (assumed from design-based + estimated)
+out23.2$biomass_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
+plot_extra_cv(out23.2)$biomass_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
 out23.2$parameter_estimates
 
 # Model 23.3 is Model 23.1 with additional obs error for LLS -----
@@ -228,6 +231,9 @@ input <- prepare_rema_input(model_name = 'Model 23.3 (23.1 w/ extra LLS OE)',
 
 m23.3 <- fit_rema(input)
 out23.3 <- tidy_rema(m23.3)
+out23.3 <- tidy_extra_cv(out23.3) # adds a few new columns to biomass_by_strata and/or cpue_by_strata with the 'total' observation error (assumed from design-based + estimated)
+out23.3$cpue_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
+plot_extra_cv(out23.3)$cpue_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
 out23.3$parameter_estimates
 
 # Model 23.4 is Model 23.1 with additional obs error for BTS and LLS -----
@@ -248,6 +254,11 @@ input <- prepare_rema_input(model_name = 'Model 23.4 (23.1 w/ Both extra OE)',
 
 m23.4 <- fit_rema(input)
 out23.4 <- tidy_rema(m23.4)
+out23.4 <- tidy_extra_cv(out23.4) # adds a few new columns to biomass_by_strata and/or cpue_by_strata with the 'total' observation error (assumed from design-based + estimated)
+out23.4$biomass_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
+out23.4$cpue_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
+plot_extra_cv(out23.4)$biomass_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
+plot_extra_cv(out23.4)$cpue_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
 out23.4$parameter_estimates
 
 # Compare OE options M19*, M23.1, M23.2, M23.3, M23.4 ----
