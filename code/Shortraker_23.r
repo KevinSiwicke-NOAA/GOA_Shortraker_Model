@@ -104,20 +104,20 @@ compare$aic
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'none') +
-                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3, scales = 'free_y') +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = NULL, subtitle = 'Trawl survey biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 60000)) +
+                     # coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    compare$plots$cpue_by_strata  +
-                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3, scales = 'free_y') +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 60000)) +
+                     # coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    ncol = 1,
                    rel_heights = c(0.9, 1))
@@ -159,21 +159,21 @@ compare$aic # By AIC, down-weighting LLS is better
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'none') +
-                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3, scales = 'free_y') +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = NULL, subtitle = 'Trawl survey biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 60000)) +
+                     # coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    compare$plots$cpue_by_strata  +
                      theme(legend.position = 'bottom', legend.justification = "center", legend.text = element_text(size = 16)) +
-                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
+                     facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3, scales = 'free_y') +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = NULL, subtitle = 'Longline survey RPW',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_viridis_d(direction = -1) +
-                     coord_cartesian(ylim=c(0, 60000)) +
+                     # coord_cartesian(ylim=c(0, 60000)) +
                      scale_colour_viridis_d(direction = -1),
                    ncol = 1,
                    rel_heights = c(.9, 1))
