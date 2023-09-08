@@ -15,7 +15,7 @@ lls.sr.len <- dbGetQuery(channel_akfin,
                 where     species_code = '30576' 
                 order by  year asc") %>% 
   rename_all(tolower) %>% 
-  filter(year > 1991, !council_sablefish_management_area == "Aleutians",
+  filter(year > 1991, year < YEAR + 1, !council_sablefish_management_area == "Aleutians",
          !council_sablefish_management_area == "Bering Sea")
 
 bts.sr.len <- dbGetQuery(channel_akfin, 
@@ -23,7 +23,7 @@ bts.sr.len <- dbGetQuery(channel_akfin,
                 from      afsc.race_sizestratumaigoa 
                 where     species_code = '30576'") %>% 
   rename_all(tolower) %>% 
-  filter(year > 1989, survey == "GOA")
+  filter(year > 1989, year < YEAR + 1, survey == "GOA")
 
 #Fishery Lengths
 fsh.sr.len <- dbGetQuery(channel_akfin,
@@ -31,4 +31,5 @@ fsh.sr.len <- dbGetQuery(channel_akfin,
                 from      norpac.debriefed_length
                 where     species = 326 and
                           year >=1989") %>% 
-  rename_all(tolower)
+  rename_all(tolower) %>% 
+  filter(year < YEAR + 1)

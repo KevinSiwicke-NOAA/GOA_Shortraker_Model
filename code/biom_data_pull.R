@@ -22,7 +22,7 @@ rpw <- dbGetQuery(channel_akfin,
   rename_all(tolower)
 
 cpue <- rpw %>% 
-  filter(year > 1991) %>% 
+  filter(year > 1991, year < YEAR + 1) %>% 
   group_by(year, strata = council_management_area) %>% 
   mutate(strata = ifelse(strata == 'Western Gulf of Alaska', 'WGOA',
                          ifelse(strata == 'Central Gulf of Alaska', 'CGOA',

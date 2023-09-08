@@ -25,7 +25,7 @@ haul <- dbGetQuery(channel_akfin,
                 where     region = 'GOA' 
                 ") %>% 
   rename_all(tolower) %>% 
-  filter(abundance_haul == "Y", year(start_time) > 1989, haul_type == 3) %>% 
+  filter(abundance_haul == "Y", year(start_time) > 1989, year(start_time) < YEAR + 1, haul_type == 3) %>% 
   mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
                          ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
                                 ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA))))
@@ -66,7 +66,7 @@ ll_dep <- dbGetQuery(channel_akfin,
                 order by  year asc
                 ") %>% 
   rename_all(tolower) %>% 
-  filter(!council_sablefish_management_area == "Aleutians", !council_sablefish_management_area == "Bering Sea") %>% 
+  filter(year < YEAR + 1, !council_sablefish_management_area == "Aleutians", !council_sablefish_management_area == "Bering Sea") %>% 
   mutate(region = ifelse(council_sablefish_management_area == "Central Gulf of Alaska", "CGOA",
                          ifelse(council_sablefish_management_area == "Western Gulf of Alaska", "WGOA",
                                 "EGOA")))
@@ -75,6 +75,8 @@ ll_catch <- dbGetQuery(channel_akfin,
                        "select    *
                 from      afsc.lls_catch_summary_view
                 where     species_code = '30576' and 
+                          year > 1991 and
+                          year < 2022 and
                           exploitable = 1 and 
                           country = 'United States'
                 order by  year asc
@@ -106,6 +108,22 @@ ggplot(ll_dat) +
   scale_x_continuous(expand=c(0,0), limits = c(0, 1200), breaks=seq(0, 1200, 250))
 
 ggsave(file = paste0("results/", YEAR, "/LLS_depth_effort.png"), height = 2.5, width = 6, dpi=600)
+
+cowplot::plot_grid(ggplot(haul) + 
+                     geom_density(aes(bottom_depth), fill = "grey60", alpha = 0.8) + 
+                     geom_density(data = cat_dat, aes(bottom_depth, weight = number_fish), fill = "red", alpha = 0.8) + 
+                     facet_grid(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+                     theme_bw() +
+                     labs(y = "Density (BTS)", x = "Depth (m)") +
+                     scale_x_continuous(expand=c(0,0), limits = c(0, 1200), breaks=seq(0, 1200, 250)),
+                   ggplot(ll_dat) + 
+                     geom_density(aes(intrpdep), fill = "grey60", alpha = 0.8) + 
+                     geom_density(aes(intrpdep, weight = catch_freq), fill = "red", alpha = 0.8) + 
+                     facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+                     theme_bw() +
+                     labs(y = "Density (LLS)", x = "Depth (m)", fill = "ddd") +
+                     scale_x_continuous(expand=c(0,0), limits = c(0, 1200), breaks=seq(0, 1200, 250)),
+                   ncol = 1)
 
 # Now look at the lengths by survey...
 lls.sr.len2 <- lls.sr.len %>% 
