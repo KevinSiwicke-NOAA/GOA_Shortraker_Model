@@ -118,37 +118,39 @@ cowplot::plot_grid(ggplot(haul) +
                      scale_x_continuous(expand=c(0,0), limits = c(0, 1200), breaks=seq(0, 1200, 250)),
                    ggplot(ll_dat) + 
                      geom_density(aes(intrpdep), fill = "grey60", alpha = 0.8) + 
-                     geom_density(aes(intrpdep, weight = catch_freq), fill = "red", alpha = 0.8) + 
+                     geom_density(aes(intrpdep, weight = catch_freq), fill = "blue", alpha = 0.8) + 
                      facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
                      theme_bw() +
                      labs(y = "Density (LLS)", x = "Depth (m)", fill = "ddd") +
                      scale_x_continuous(expand=c(0,0), limits = c(0, 1200), breaks=seq(0, 1200, 250)),
                    ncol = 1)
 
+ggsave(file = paste0("results/", YEAR, "/combo_depth_effort.png"), height = 5, width = 6, dpi=600)
 # Now look at the lengths by survey...
 lls.sr.len2 <- lls.sr.len %>% 
   mutate(region = ifelse(council_sablefish_management_area == "Central Gulf of Alaska", "CGOA",
                          ifelse(council_sablefish_management_area == "Western Gulf of Alaska", "WGOA", "EGOA")))
 
 # Group the LL numbers by year/region/length
-ll.len = lls.sr.len2 %>% 
+ll.len.agg <- lls.sr.len2 %>% 
   group_by(year, length, region) %>% 
-  summarize(freq = sum(rpn, na.rm = T)) %>% 
-  mutate(calc = freq * length)
+  summarize(freq = sum(rpn, na.rm = T)) 
 
-ll.means = ll.len %>% group_by(year, region) %>% 
-  summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
-  mutate(mean = l_calc / tot)
+ll.len.disagg <- ll.len.agg %>% 
+  slice(rep(1:n(), freq)) %>% 
+  select(-freq)
 
-ll.means2 = ll.len %>% group_by(region) %>% 
-  summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
-  mutate(mean = l_calc / tot)
+ll.means <- ll.len.disagg %>% group_by(year, region) %>% 
+  summarize(mean = mean(length), sd = sd(length)) 
 
-ll.len = merge(ll.len, ll.means, by=c("year", "region"))
+ll.means2 <- ll.len.disagg %>% group_by(region) %>% 
+  summarize(mean = mean(length), sd = sd(length)) 
+
+# ll.len = merge(ll.len.disagg, ll.means, by=c("year", "region"))
 
 # Plot all regions 
 ggplot() +
-  geom_histogram(data=ll.len, aes(x=length, y=after_stat(density), weighted.mean=freq, fill = region),
+  geom_histogram(data=ll.len.disagg, aes(x=length, y=after_stat(density), fill = region),
                  position = 'identity', alpha=0.5, binwidth=1, col="black") +
   theme(legend.position = "top") +
   # scale_fill_discrete(type = c('red', 'blue', 'orange')) +
@@ -173,85 +175,80 @@ bts.sr.len2 <- bts.sr.len %>%
 
 #####################
 # Group the BTS numbers by year/length
-len = bts.sr.len2 %>% 
+len.agg <- bts.sr.len2 %>% 
   mutate(length = length / 10) %>% 
   group_by(year, length, region) %>% 
-  summarize(freq = sum(total)) %>% 
-  mutate(calc = freq * length)
+  summarize(freq = sum(total))
 
-means = len %>% group_by(year, region) %>% 
-  summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
-  mutate(mean = l_calc / tot)
+len.disagg <- len.agg %>% 
+  slice(rep(1:n(), freq)) %>% 
+  select(-freq)
 
-means2 = len %>% group_by(region) %>% 
-  summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
-  mutate(mean = l_calc / tot)
+means <- len.disagg %>% group_by(year, region) %>% 
+  summarize(mean = mean(length), sd = sd(length))
 
-len = merge(len, means, by=c("year", "region"))
+means2 <- len.disagg %>% group_by(region) %>% 
+  summarize(mean = mean(length), sd = sd(length))
 
-ggplot(means, aes(year, mean, col = region))  + 
-  geom_line(size = 2) +
-  geom_point(size=4, shape = 21) +
-  facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
-  ylab("Mean length (cm)") +
-  scale_x_continuous(breaks=seq(1990,2020,5)) +
-  theme_bw() +
-  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
+# len = merge(len.disagg, means, by=c("year", "region"))
 
 # Plot all regions 
 ggplot() +
-  geom_histogram(data=len, aes(x=length, y=after_stat(density), weighted.mean=freq, fill = region),
+  geom_histogram(data=len.disagg, aes(x=length, y=after_stat(density), fill = region),
                  position = 'identity', alpha=0.5, binwidth=1, col="black") +
   theme(legend.position = "top") +
-  # scale_fill_discrete(type = c('red', 'blue', 'orange')) +
   facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
   xlab("Length (cm)") +
   ylab("Length composition by region") +
   geom_text(data=means2, aes(x=c(82),  y=c(0.055), label=paste0(region, " mean length: ", format(round(mean, digits=1), nsmall = 1) , " cm"))) +
   scale_y_continuous(expand=c(0,0), limits=c(0,0.07)) +
-  # scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
-  # facet_wrap(~survey, ncol=1) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
 
 ggsave(file = paste0("results/", YEAR, "/BTS_reg_len.png"), height = 8, width = 6, dpi=600)
 
-# Combine regional lengths for BTS and LLS...
-len$survey = "BTS"
-ll.len$survey = "LLS"
+# # Combine regional lengths for BTS and LLS...
+# len$survey = "BTS"
+# ll.len$survey = "LLS"
+# 
+# all = rbind(len, ll.len)
+# 
+# ll.means2$survey = "LLS"
+# means2$survey = "BTS"
+# all.mean = rbind(ll.means2, means2)
+# 
+# ggplot() +
+#   geom_histogram(data=all, aes(x=length, y=after_stat(density), weighted.mean=freq, fill = survey),
+#                  position = 'identity', alpha=0.5, binwidth=1, col="black") +
+#   theme(legend.position = "top") +
+#   scale_fill_discrete(type = c('red', 'blue')) +
+#   facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
+#   xlab("Length (cm)") +
+#   ylab("Length composition by survey") +
+#   labs(fill = "Survey") +
+#   # geom_text(data=all.mean, aes(x=c(23,23),  y=c(0.045, .04), label=paste0(survey, " mean length: ", format(round(mean, digits=1), nsmall = 1) , " cm"))) +
+#   scale_y_continuous(expand=c(0,0), limits=c(0,0.067)) +
+#   scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
+#   # facet_wrap(~survey, ncol=1) +
+#   theme_bw() +
+#   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank()) 
+# 
+# ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=600)
 
-all = rbind(len, ll.len)
-
-ll.means2$survey = "LLS"
-means2$survey = "BTS"
-all.mean = rbind(ll.means2, means2)
-
-ggplot() +
-  geom_histogram(data=all, aes(x=length, y=after_stat(density), weighted.mean=freq, fill = survey),
-                 position = 'identity', alpha=0.5, binwidth=1, col="black") +
-  theme(legend.position = "top") +
-  scale_fill_discrete(type = c('red', 'blue')) +
-  facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
-  xlab("Length (cm)") +
-  ylab("Length composition by survey") +
-  labs(fill = "Survey") +
-  # geom_text(data=all.mean, aes(x=c(23,23),  y=c(0.045, .04), label=paste0(survey, " mean length: ", format(round(mean, digits=1), nsmall = 1) , " cm"))) +
-  scale_y_continuous(expand=c(0,0), limits=c(0,0.067)) +
-  scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
-  # facet_wrap(~survey, ncol=1) +
-  theme_bw() +
-  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank()) 
-
-ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=600)
 # Time series with the annual mean length by survey
-ggplot(ll.means %>% filter(!region == "AI", !region == "EBS"), aes(year, mean, col = region))  + 
-  geom_line(size = 2) +
-  geom_point(size=4) +
-  geom_point(data = means, size=4, shape = 21) +
-  facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
-  ylab("Mean length (cm)") +
-  xlab("Year") +
+ll.means$survey = "LLS"
+means$survey = "BTS"
+ll.means$year = ll.means$year + 0.25
+means$year = means$year - 0.25
+all.mean = rbind(ll.means, means)
+
+ggplot(all.mean, aes(year, mean, col = survey)) +
+  geom_point(size = 2) +
+  scale_color_discrete(type = list(c("red", "blue"))) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
+  facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+  labs(y = "Mean length (cm)", x = "Year", col = "Survey") +
   scale_x_continuous(breaks=seq(1990,2020,10)) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
