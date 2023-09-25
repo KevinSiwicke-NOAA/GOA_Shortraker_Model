@@ -1,4 +1,4 @@
-library(tidyverse)
+library(dplyr)
 library(DBI)
 library(keyring)
 
@@ -66,7 +66,7 @@ biomass <- biom %>%
 
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
 
-model_yrs <- 1984:YEAR
+model_yrs <- 1990:YEAR
 
 # biomass_alt <- biom2 %>% 
 #   filter(stratum_type == 'SLOPE' | stratum_type == 'GULLY') %>% 
