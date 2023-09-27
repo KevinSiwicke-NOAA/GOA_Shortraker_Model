@@ -52,6 +52,24 @@ cpue_dat <- model_dat$cpue_dat
 cpue_dat %>% 
   write_csv(paste0(dat_path, "/goa_sr_rpw_", YEAR, ".csv"))
 
+# Model 19* no 1984/87 ----
+input <- prepare_rema_input(model_name = 'Model 19*',
+                            multi_survey = 1,
+                            biomass_dat = biomass_dat,
+                            cpue_dat = cpue_dat,
+                            wt_cpue = 0.5,
+                            sum_cpue_index = TRUE,
+                            # start at 1990 instead of 1984
+                            start_year = 1990,
+                            end_year = YEAR + 2,
+                            PE_options = list(pointer_PE_biomass = c(1, 1, 1)),
+                            q_options = list(
+                              pointer_biomass_cpue_strata = c(1, 2, 3),
+                              pointer_q_cpue = c(1, 2, 3)))
+m19s <- fit_rema(input)
+out19s <- tidy_rema(m19s)
+out19s$parameter_estimates
+
 # Model 23.3 is Model 23.1 with additional obs error for LLS -----
 input <- prepare_rema_input(model_name = 'Model 23.3',
                             multi_survey = 1,
@@ -73,7 +91,7 @@ out23.3 <- tidy_extra_cv(out23.3) # adds a few new columns to biomass_by_strata 
 out23.3$cpue_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
 # plot_extra_cv(out23.3)$cpue_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
 # out23.3$parameter_estimates
-compare <- compare_rema_models(rema_models = list(m23.3))
+compare <- compare_rema_models(rema_models = list(m19s, m23.3))
 
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'top', legend.text = element_text(size = 16)) +
@@ -81,18 +99,18 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = 'Biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     scale_fill_discrete(type = c('#440154FF')) +
+                     scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
                      coord_cartesian(ylim=c(0, 60000)) +
-                     scale_color_discrete(type = c('#440154FF')),
+                     scale_color_discrete(type = c('#440154FF', '#FDE725FF')), 
                    compare$plots$cpue_by_strata  +
                      theme(legend.position = 'none') +
                      facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
                      geom_line(size = 1.2) +
                      labs(x = NULL, y = 'Relative Population Weights',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
-                     scale_fill_discrete(type = c('#440154FF')) +
+                     scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
                      coord_cartesian(ylim=c(0, 60000)) +
-                     scale_color_discrete(type = c('#440154FF')),
+                     scale_color_discrete(type = c('#440154FF', '#FDE725FF')),
                    ncol = 1,
                    rel_heights = c(0.9, 1))
 
@@ -103,18 +121,18 @@ compare$plots$total_predicted_biomass +
   theme(legend.position = 'top', legend.text = element_text(size = 16)) +
   labs(y = 'Biomass (t)',
        fill = NULL, colour = NULL) +
-  scale_fill_discrete(type = c('#440154FF')) +
-  scale_color_discrete(type = c('#440154FF')) + 
+  scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
+  scale_color_discrete(type = c('#440154FF', '#FDE725FF')) +
   geom_line(size = 1.2)
 
 ggsave(filename = paste0(out_path, '/M23.3_totalbiomass.png'),
        dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)
 
-params <- out23.3$parameter_estimates %>% 
+params <- bind_rows(out19s$parameter_estimates, out23.3$parameter_estimates) %>% 
   write_csv(paste0(out_path, '/parameter_values.csv'))
 
 # apportionment ----
-appo_std <- out23.3$biomass_by_strata %>%
+appo_std <- compare$output$biomass_by_strata %>%
   mutate(strata = ifelse(grepl('CGOA', strata), 'CGOA',
                          ifelse(grepl('EGOA', strata), 'EGOA',
                                 'WGOA'))) %>%
@@ -136,8 +154,8 @@ ggplot(appo_std, aes(year, proportion_std)) +
   coord_flip() +
   labs(x = NULL, y = 'Proportion', fill = 'Region')
 
-# ggsave(filename = paste0(out_path, '/m23.3_appo_std.png'),
-#        dpi = 600, bg = 'white', units = 'in', height = 8.5, width = 10)
+ggsave(filename = paste0(out_path, '/m19s_m23.3_appo_std.png'),
+       dpi = 600, bg = 'white', units = 'in', height = 8.5, width = 10)
 
 # These are just for comparison to BTS only apportionment
 full_sumtable_std <- appo_std %>%
@@ -149,11 +167,10 @@ full_sumtable_std <- appo_std %>%
 
 sumtable_std <- full_sumtable_std %>%
   distinct(model_name, year, biomass = total_biomass, OFL, maxABC) %>%
-  select(model_name, year, biomass, OFL, maxABC) 
-# %>%
-#   write_csv(paste0(out_path, '/abc_ofl_summary_std.csv'))
+  select(model_name, year, biomass, OFL, maxABC) %>%
+  write_csv(paste0(out_path, '/abc_ofl_summary_std.csv'))
 
-appo_lls <- out23.3$cpue_by_strata %>%
+appo_lls <- compare$output$cpue_by_strata %>%
   mutate(strata = ifelse(grepl('CGOA', strata), 'CGOA',
                          ifelse(grepl('EGOA', strata), 'EGOA',
                                 'WGOA'))) %>%
@@ -179,7 +196,7 @@ ggplot(appo_combo, aes(year, proportion)) +
   coord_flip() +
   labs(x = NULL, y = 'Proportion', fill = 'Region')
 
-ggsave(filename = paste0(out_path, '/m23.3_appo_fig.png'),
+ggsave(filename = paste0(out_path, '/m19s_m23.3_appo_fig.png'),
        dpi = 600, bg = 'white', units = 'in', height = 8.5, width = 10)
 
 full_sumtable_combo <- appo_combo %>%
@@ -193,7 +210,7 @@ full_sumtable_combo <- appo_combo %>%
 sumtable_combo <- full_sumtable_combo %>%
   distinct(model_name, year, biomass = total_biomass, OFL, maxABC) %>%
   select(model_name, year, biomass, OFL, maxABC) %>%
-  write_csv(paste0(out_path, '/abc_ofl_summary.csv'))
+  write_csv(paste0(out_path, '/abc_ofl_summary_combo.csv'))
 
 # # percent changes -----
 # biomass_dat %>% filter(year %in% c(2019,2021)) %>%
