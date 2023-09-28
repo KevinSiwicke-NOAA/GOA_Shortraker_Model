@@ -4,14 +4,49 @@
 #
 # =========================================================================================
 # Pull length data
-source("code/length_data_pull.r")
+source("code/other_data_pull.r")
 
 lls.sr.len %>% 
   write_csv(paste0(dat_path, "/goa_sr_lls_lengths", YEAR, ".csv"))
 bts.sr.len %>% 
   write_csv(paste0(dat_path, "/goa_sr_bts_lengths", YEAR, ".csv"))
+bts.sr.age %>% 
+  write_csv(paste0(dat_path, "/goa_sr_bts_ages", YEAR, ".csv"))
 fsh.sr.len %>% 
   write_csv(paste0(dat_path, "/goa_sr_fishery_lengths", YEAR, ".csv"))
+
+####################
+# Group the BTS numbers by year/age
+age = bts.sr.age %>% 
+  filter(age > 0) %>% 
+  group_by(age, survey_year) %>% 
+  summarize(freq = sum(agepop)) %>% 
+  mutate(calc = freq * age)
+
+means = age %>% group_by(survey_year) %>% 
+  summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
+  mutate(mean = l_calc / tot) %>% 
+  left_join(bts.sr.spec)
+
+age = merge(age, means, by=c("survey_year"))
+
+age %>%  
+  ggplot(aes(x=age, y=after_stat(density), weight = freq)) +
+  # theme_linedraw() +
+  geom_histogram(alpha=0.25, binwidth=1, col="black") +
+  facet_wrap(~survey_year, ncol = 1) +
+  theme(legend.position = "top") +
+  xlab("Age") +
+  ylab("Proportion of trawl survey population") +
+  geom_text(aes(x=100, y = 0.05, label = paste0("n = ", Num))) +
+  geom_text(aes(x=100, y=0.04, label = paste0("Mean = ", format(round(mean, digits=1), nsmall = 1)))) +
+  # scale_y_continuous(expand=c(0,0), limits=c(0,0.09)) +
+  scale_x_continuous(expand=c(0,0), breaks=seq(0, 150, 25)) +
+  theme_bw() +
+  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), 
+        panel.grid.minor = element_blank(), panel.grid.major = element_blank()) 
+
+ggsave(file = paste0("results/", YEAR, "/SR_BTS_Ages.png"), height = 10, width = 5, dpi=600)
 
 # Group the LL numbers by year/length
 ll.len = lls.sr.len %>% 

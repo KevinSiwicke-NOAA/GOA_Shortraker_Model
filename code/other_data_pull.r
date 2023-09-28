@@ -25,6 +25,25 @@ bts.sr.len <- dbGetQuery(channel_akfin,
   rename_all(tolower) %>% 
   filter(year > 1989, year < YEAR + 1, survey == "GOA")
 
+# get age data to population
+bts.sr.age <- dbGetQuery(channel_akfin, 
+                          "select    *
+                from      afsc.race_agecomptotalaigoa 
+                where     species_code = '30576'") %>% 
+  rename_all(tolower) %>% 
+  filter(survey == "GOA")
+
+# Age sample sizes
+bts.sr.spec <- dbGetQuery(channel_akfin, 
+                         "select    *
+                from      afsc.race_specimenaigoa 
+                where     species_code = '30576'") %>% 
+  rename_all(tolower) %>% 
+  filter(region == "GOA", age > 0) %>% 
+  mutate(survey_year = (cruise - 1) / 100) %>% 
+  group_by(survey_year) %>% 
+  summarize(Num = n())
+  
 #Fishery Lengths
 fsh.sr.len <- dbGetQuery(channel_akfin,
                           "select    *
@@ -33,3 +52,4 @@ fsh.sr.len <- dbGetQuery(channel_akfin,
                           year >=1989") %>% 
   rename_all(tolower) %>% 
   filter(year < YEAR + 1)
+  

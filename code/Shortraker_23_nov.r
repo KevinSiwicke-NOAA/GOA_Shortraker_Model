@@ -255,7 +255,7 @@ sumtable_combo <- full_sumtable_combo %>%
 #   write.csv(paste0(out_path, '/M23_Table_goa_biomass_pred.csv'))
 
 # Pull length data and make figures
-source("code/Length_figures.r")
+source("code/Other_Figures.r")
 
 # Survey comparisons with figures; uncomment to run or open file and run separate
 # source("code/survey_comparison.r")
