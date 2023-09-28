@@ -88,7 +88,7 @@ input <- prepare_rema_input(model_name = 'Model 23.3',
 m23.3 <- fit_rema(input)
 out23.3 <- tidy_rema(m23.3)
 out23.3 <- tidy_extra_cv(out23.3) # adds a few new columns to biomass_by_strata and/or cpue_by_strata with the 'total' observation error (assumed from design-based + estimated)
-out23.3$cpue_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
+# out23.3$cpue_by_strata %>% select(model_name, strata, year, obs, contains(c('obs_lci','obs_uci')))
 # plot_extra_cv(out23.3)$cpue_by_strata # bold error bar w/ whiskers = assumed CV from design-based survey estimates, full error bar w/ no whiskers = total (assumed + estimated)
 # out23.3$parameter_estimates
 compare <- compare_rema_models(rema_models = list(m19s, m23.3))
@@ -128,8 +128,14 @@ compare$plots$total_predicted_biomass +
 ggsave(filename = paste0(out_path, '/M23.3_totalbiomass.png'),
        dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)
 
-params <- bind_rows(out19s$parameter_estimates, out23.3$parameter_estimates) %>% 
+params <- compare$output$parameter_estimates %>% 
   write_csv(paste0(out_path, '/parameter_values.csv'))
+
+pred_strata_biom <- compare$output$biomass_by_strata %>% 
+  write_csv(paste0(out_path, '/pred_strata_biomass.csv'))
+
+pred_tot_biom <- compare$output$total_predicted_biomass %>% 
+  write_csv(paste0(out_path, '/pred_total_biomass.csv'))
 
 # apportionment ----
 appo_std <- compare$output$biomass_by_strata %>%
