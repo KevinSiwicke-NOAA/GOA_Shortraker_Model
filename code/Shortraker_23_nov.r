@@ -96,7 +96,7 @@ compare <- compare_rema_models(rema_models = list(m19s, m23.3))
 cowplot::plot_grid(compare$plots$biomass_by_strata +
                      theme(legend.position = 'top', legend.text = element_text(size = 16)) +
                      facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
-                     geom_line(size = 1.2) +
+                     geom_line(linewidth = 1.2) +
                      labs(x = NULL, y = 'Biomass (t)',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
@@ -105,7 +105,7 @@ cowplot::plot_grid(compare$plots$biomass_by_strata +
                    compare$plots$cpue_by_strata  +
                      theme(legend.position = 'none') +
                      facet_wrap(~factor(strata, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 3) +
-                     geom_line(size = 1.2) +
+                     geom_line(linewidth = 1.2) +
                      labs(x = NULL, y = 'Relative Population Weights',
                           fill = NULL, colour = NULL, shape = NULL, lty = NULL) +
                      scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
@@ -123,7 +123,7 @@ compare$plots$total_predicted_biomass +
        fill = NULL, colour = NULL) +
   scale_fill_discrete(type = c('#440154FF', '#FDE725FF')) +
   scale_color_discrete(type = c('#440154FF', '#FDE725FF')) +
-  geom_line(size = 1.2)
+  geom_line(linewidth = 1.2)
 
 ggsave(filename = paste0(out_path, '/M23.3_totalbiomass.png'),
        dpi = 600, bg = 'white', units = 'in', height = 3.5, width = 8)

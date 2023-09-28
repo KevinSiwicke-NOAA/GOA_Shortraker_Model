@@ -209,33 +209,33 @@ ggplot() +
 
 ggsave(file = paste0("results/", YEAR, "/BTS_reg_len.png"), height = 8, width = 6, dpi=600)
 
-# # Combine regional lengths for BTS and LLS...
-# len$survey = "BTS"
-# ll.len$survey = "LLS"
-# 
-# all = rbind(len, ll.len)
-# 
-# ll.means2$survey = "LLS"
-# means2$survey = "BTS"
-# all.mean = rbind(ll.means2, means2)
-# 
-# ggplot() +
-#   geom_histogram(data=all, aes(x=length, y=after_stat(density), weighted.mean=freq, fill = survey),
-#                  position = 'identity', alpha=0.5, binwidth=1, col="black") +
-#   theme(legend.position = "top") +
-#   scale_fill_discrete(type = c('red', 'blue')) +
-#   facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
-#   xlab("Length (cm)") +
-#   ylab("Length composition by survey") +
-#   labs(fill = "Survey") +
-#   # geom_text(data=all.mean, aes(x=c(23,23),  y=c(0.045, .04), label=paste0(survey, " mean length: ", format(round(mean, digits=1), nsmall = 1) , " cm"))) +
-#   scale_y_continuous(expand=c(0,0), limits=c(0,0.067)) +
-#   scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
-#   # facet_wrap(~survey, ncol=1) +
-#   theme_bw() +
-#   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank()) 
-# 
-# ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=600)
+# Combine regional lengths for BTS and LLS...
+len.disagg$survey = "BTS"
+ll.len.disagg$survey = "LLS"
+
+all = rbind(len.disagg, ll.len.disagg)
+
+ll.means2$survey = "LLS"
+means2$survey = "BTS"
+all.mean = rbind(ll.means2, means2)
+
+ggplot() +
+  geom_histogram(data=all, aes(x=length, y=after_stat(density), fill = survey),
+                 position = 'identity', alpha=0.5, binwidth=1, col="black") +
+  theme(legend.position = "top") +
+  scale_fill_discrete(type = c('red', 'blue')) +
+  facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1) +
+  xlab("Length (cm)") +
+  ylab("Length composition by survey") +
+  labs(fill = "Survey") +
+  # geom_text(data=all.mean, aes(x=c(23,23),  y=c(0.045, .04), label=paste0(survey, " mean length: ", format(round(mean, digits=1), nsmall = 1) , " cm"))) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,0.067)) +
+  scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
+  # facet_wrap(~survey, ncol=1) +
+  theme_bw() +
+  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
+
+ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=600)
 
 # Time series with the annual mean length by survey
 ll.means$survey = "LLS"
