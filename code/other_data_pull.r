@@ -62,15 +62,14 @@ fsh.sr.len <- dbGetQuery(channel_akfin,
 # Fishery Catch
 fsh.sr.cat <- dbGetQuery(channel_akfin, 
                   "select    *
-                  from      council.comprehensive_norpac
-                  where     species_name = 'SHORTRAKER ROCKFISH' and
-                            nmfs_area > 609 and
-                            nmfs_area < 651 and
-                            year >= 2010 
-                ") %>% 
+                  from      council.comprehensive_blend_ca
+                  where     species_group_code = 'SRKR' and 
+                            fmp_area = 'GOA' and
+                            year >= 2010
+                                  ") %>% 
   rename_all(tolower) %>% 
-  filter(gear_type == 1 | gear_type == 8, !nmfs_area == 649, extrapolated_number > 0) %>% 
-  mutate(region = ifelse(nmfs_area == 610, 'WGOA', 
-                         ifelse(nmfs_area == 620 | nmfs_area == 630, 'CGOA',
-                                ifelse(nmfs_area == 640 | nmfs_area == 650, 'EGOA', NA)))) %>% 
+  filter(weight_posted > 0) %>% 
+  mutate(region = ifelse(reporting_area_code == 610, 'WGOA', 
+                         ifelse(reporting_area_code == 620 | reporting_area_code == 630, 'CGOA',
+                                ifelse(reporting_area_code == 640 | reporting_area_code == 650, 'EGOA', NA)))) %>% 
   write_csv(paste0("data/", YEAR, "/shortraker_catch.csv"))

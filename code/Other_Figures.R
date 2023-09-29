@@ -233,20 +233,38 @@ ggsave(file = paste0("results/", YEAR, "/all_fish_len.png"), height = 4, width =
 
 # Fishery Catch
 catch <- fsh.sr.cat %>% 
-  filter(!is.na(extrapolated_weight)) %>% 
-  group_by(year, gear_description, region) %>% 
-  summarize(catch = sum(extrapolated_weight) / 1000)
+  filter(!agency_gear_code == "JIG") %>% # Use this if you want to remove some gear types (previous just had HAL and NPT)
+  group_by(year, agency_gear_code, region) %>% 
+  summarize(catch = sum(weight_posted))
 
-ggplot(catch, aes(year, catch, col = gear_description)) +
+ggplot(data.frame(catch), aes(as.integer(year), catch, col = agency_gear_code, group = agency_gear_code)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  scale_color_discrete(type = c('blue', 'red', 'orange', 'purple')) +
+  facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+  labs(y = "Catch (t)", x = "Year", col = "Gear") +
+  scale_x_continuous(breaks=seq(2010,2025,5)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 375)) +
+  theme_bw() +
+  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
+
+ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
+
+# Exploitation
+catch <- fsh.sr.cat %>% 
+  group_by(year, agency_gear_code, region) %>% 
+  summarize(catch = sum(weight_posted))
+
+ggplot(catch, aes(year, catch, col = agency_gear_code)) +
   geom_line() +
   geom_point(size = 2) +
   # scale_color_discrete(type = list(c("red", "blue"))) +
   # geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
   facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
-  # labs(y = "Mean length (cm)", x = "Year", col = "Survey") +
+  labs(y = "Catch (t)", x = "Year", col = "Gear") +
   scale_x_continuous(breaks=seq(2010,2025,5)) +
   scale_y_continuous(expand = c(0,0)) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
 
-ggsave(file = paste0("results/", YEAR, "/MeanLengths_TS.png"), height = 5, width = 10, dpi=600)
+ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
