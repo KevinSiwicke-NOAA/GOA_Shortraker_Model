@@ -6,15 +6,6 @@
 # Pull length data
 source("code/other_data_pull.r")
 
-lls.sr.len %>% 
-  write_csv(paste0(dat_path, "/goa_sr_lls_lengths", YEAR, ".csv"))
-bts.sr.len %>% 
-  write_csv(paste0(dat_path, "/goa_sr_bts_lengths", YEAR, ".csv"))
-bts.sr.age %>% 
-  write_csv(paste0(dat_path, "/goa_sr_bts_ages", YEAR, ".csv"))
-fsh.sr.len %>% 
-  write_csv(paste0(dat_path, "/goa_sr_fishery_lengths", YEAR, ".csv"))
-
 ####################
 # Group the BTS numbers by year/age
 age = bts.sr.age %>% 
