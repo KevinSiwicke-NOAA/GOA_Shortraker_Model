@@ -230,3 +230,23 @@ ggplot(lengths) +
 
     
 ggsave(file = paste0("results/", YEAR, "/all_fish_len.png"), height = 4, width = 7, dpi=600)
+
+# Fishery Catch
+catch <- fsh.sr.cat %>% 
+  filter(!is.na(extrapolated_weight)) %>% 
+  group_by(year, gear_description, region) %>% 
+  summarize(catch = sum(extrapolated_weight) / 1000)
+
+ggplot(catch, aes(year, catch, col = gear_description)) +
+  geom_line() +
+  geom_point(size = 2) +
+  # scale_color_discrete(type = list(c("red", "blue"))) +
+  # geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
+  facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+  # labs(y = "Mean length (cm)", x = "Year", col = "Survey") +
+  scale_x_continuous(breaks=seq(2010,2025,5)) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_bw() +
+  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
+
+ggsave(file = paste0("results/", YEAR, "/MeanLengths_TS.png"), height = 5, width = 10, dpi=600)
