@@ -207,29 +207,29 @@ ggsave(file = paste0("results/", YEAR, "/all_len.png"), height = 4, width = 6, d
 
 # Fishery lengths
 lengths <- fsh.sr.len %>% 
-  filter(gear == 1 | gear == 8) %>%
-  filter(nmfs_area > 609, nmfs_area < 651, !nmfs_area == 649) %>% 
-  mutate(Gear = ifelse(gear == 1, "Trawl", "Longline"))
+  filter(gear == 1 | gear == 8, !is.na(region)) %>%
+  # filter(nmfs_area > 609, nmfs_area < 651, !nmfs_area == 649) %>% 
+  mutate(Gear = ifelse(gear == 1, "NPT", "HAL"))
 
 mean_lengths <- lengths %>% 
-  group_by(Gear) %>% 
+  group_by(Gear, region) %>% 
   summarize(Mean = mean(length))
 
 ggplot(lengths) + 
-  geom_histogram(aes(x=length, y=after_stat(density), weighted.mean=frequency, fill = Gear),
+  geom_histogram(aes(x=length, y=after_stat(density), weight = frequency, fill = Gear),
                  position = 'identity', alpha=0.5, binwidth=1, col="black") +
   scale_fill_discrete(type = c('blue', 'red')) +
   xlab("Length (cm)") +
   ylab("Length composition by gear type") +
-  geom_text(data=mean_lengths, aes(x=c(85,85),  y=c(0.055, .05), label=paste0(Gear, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
-  scale_y_continuous(expand=c(0,0), limits=c(0,0.06)) +
+  # geom_text(data=mean_lengths, aes(x=c(85,85),  y=c(0.055, .05), label=paste0(Gear, " mean length: ", format(round(Mean, digits=1), nsmall = 1) , " cm"))) +
+  scale_y_continuous(expand=c(0.00,0)) +
   scale_x_continuous(expand=c(0,5), breaks=seq(5,115,10)) +
+  facet_wrap(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA')), ncol = 1, scales = 'free_y') +
   theme_bw() +
-  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
-        panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
+  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), 
+        panel.grid.minor = element_blank()) 
 
-    
-ggsave(file = paste0("results/", YEAR, "/all_fish_len.png"), height = 4, width = 7, dpi=600)
+ggsave(file = paste0("results/", YEAR, "/all_fish_region_len.png"), height = 8, width = 6, dpi=600)
 
 # Fishery Catch
 catch <- fsh.sr.cat %>% 
@@ -251,20 +251,20 @@ ggplot(data.frame(catch), aes(as.integer(year), catch, col = agency_gear_code, g
 ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
 
 # Exploitation
-catch <- fsh.sr.cat %>% 
-  group_by(year, agency_gear_code, region) %>% 
-  summarize(catch = sum(weight_posted))
-
-ggplot(catch, aes(year, catch, col = agency_gear_code)) +
-  geom_line() +
-  geom_point(size = 2) +
-  # scale_color_discrete(type = list(c("red", "blue"))) +
-  # geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
-  facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
-  labs(y = "Catch (t)", x = "Year", col = "Gear") +
-  scale_x_continuous(breaks=seq(2010,2025,5)) +
-  scale_y_continuous(expand = c(0,0)) +
-  theme_bw() +
-  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
-
-ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
+# catch <- fsh.sr.cat %>% 
+#   group_by(year, agency_gear_code, region) %>% 
+#   summarize(catch = sum(weight_posted))
+# 
+# ggplot(catch, aes(year, catch, col = agency_gear_code)) +
+#   geom_line() +
+#   geom_point(size = 2) +
+#   # scale_color_discrete(type = list(c("red", "blue"))) +
+#   # geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
+#   facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
+#   labs(y = "Catch (t)", x = "Year", col = "Gear") +
+#   scale_x_continuous(breaks=seq(2010,2025,5)) +
+#   scale_y_continuous(expand = c(0,0)) +
+#   theme_bw() +
+#   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
+# 
+# ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)

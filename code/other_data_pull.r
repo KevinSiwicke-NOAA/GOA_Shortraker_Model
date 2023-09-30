@@ -53,10 +53,13 @@ fsh.sr.len <- dbGetQuery(channel_akfin,
                 from      norpac.debriefed_length
                 where     species = 326 and 
                           nmfs_area > 609 and
-                          nmfs_area < 651 and 
+                          nmfs_area < 651 and
                           year >= 1989") %>% 
   rename_all(tolower) %>% 
   filter(year < YEAR + 1) %>% 
+  mutate(region = ifelse(nmfs_area == 610, 'WGOA', 
+                         ifelse(nmfs_area == 620 | nmfs_area == 630, 'CGOA',
+                                ifelse(nmfs_area == 640 | nmfs_area == 650, 'EGOA', NA)))) %>% 
   write_csv(paste0(dat_path, "/goa_sr_fishery_lengths", YEAR, ".csv"))
   
 # Fishery Catch
