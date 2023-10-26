@@ -2,6 +2,8 @@ library(dplyr)
 library(DBI)
 library(keyring)
 
+YEAR = 2023
+
 # I get survey data from AKFIN and my credentials are stored with keyring
 db <- "akfin"
 channel_akfin <- DBI::dbConnect (odbc::odbc(),
@@ -20,6 +22,21 @@ rpw <- dbGetQuery(channel_akfin,
                 order by  year asc
                 ") %>% 
   rename_all(tolower)
+
+readr::write_csv(rpw, here::here("data", "sr_area_rpn_all_strata.csv"))
+
+# for katy 10/26/2023
+cpue <- rpw %>% 
+  filter(year > 1991, year < YEAR + 1) %>% 
+  group_by(year, strata = council_sablefish_management_area) %>% 
+  mutate(strata = ifelse(strata == 'Western Gulf of Alaska', 'WGOA',
+                         ifelse(strata == 'Central Gulf of Alaska', 'CGOA',
+                         ifelse(strata == 'West Yakutat', 'WY',
+                                ifelse(strata == 'East Yakutat/Southeast', 'EY/SE', NA))))) %>% 
+  summarize(cpue = sum(rpw, na.rm = TRUE),
+            cv = sqrt(sum(rpw_var, na.rm = TRUE)) / cpue)
+
+readr::write_csv(cpue, here::here("data", "sr_rpw_split_egoa.csv"))
 
 cpue <- rpw %>% 
   filter(year > 1991, year < YEAR + 1) %>% 
