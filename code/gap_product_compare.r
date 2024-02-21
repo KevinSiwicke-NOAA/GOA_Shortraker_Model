@@ -22,12 +22,12 @@ biom <- dbGetQuery(channel_akfin,
                 ") %>% 
   rename_all(tolower)
 
-strata <- dbGetQuery(channel_akfin, 
-                     "select    *
-                from      afsc.race_goastrataaigoa
-                where     survey = 'GOA'
-                ") %>% 
-  rename_all(tolower)
+# strata <- dbGetQuery(channel_akfin, 
+#                      "select    *
+#                 from      afsc.race_goastrataaigoa
+#                 where     survey = 'GOA'
+#                 ") %>% 
+#   rename_all(tolower)
 
 biomass <- biom %>% 
   mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
@@ -40,8 +40,8 @@ biomass <- biom %>%
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
 
 # Now using gap_products...
-biom_new <- dbGetQuery(akfin, 
-                   "select    *
+biom_new <- dbGetQuery(channel_akfin, 
+                       "select    *
                 from      gap_products.akfin_biomass
                 where     species_code = '30576' and 
                           survey_definition_id = 47 and 
@@ -50,14 +50,14 @@ biom_new <- dbGetQuery(akfin,
                 ") %>% 
   rename_all(tolower)
 
-strata_new <- dbGetQuery(akfin, 
-                "select    *
-                from      gap_products.akfin_area
-                where     survey_definition_id = 47 and
-                          area_type = 'STRATUM' and
-                          design_year = 1984
-                ") %>% 
-  rename_all(tolower)
+# strata_new <- dbGetQuery(akfin, 
+#                 "select    *
+#                 from      gap_products.akfin_area
+#                 where     survey_definition_id = 47 and
+#                           area_type = 'STRATUM' and
+#                           design_year = 1984
+#                 ") %>% 
+#   rename_all(tolower)
 
 biomass_new <- biom_new %>% 
   mutate(strata = ifelse(area_id %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
