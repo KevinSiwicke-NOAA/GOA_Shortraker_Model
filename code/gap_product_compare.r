@@ -1,6 +1,7 @@
 library(dplyr)
 library(DBI)
 library(keyring)
+library(ggplot2)
 
 YEAR = 2023
 
