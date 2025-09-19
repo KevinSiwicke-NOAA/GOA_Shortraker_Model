@@ -76,9 +76,9 @@ ll.len$survey = "LLS"
 #####################
 # Group the BTS numbers by year/length
 len = bts.sr.len %>% 
-  mutate(length = length / 10) %>% 
+  mutate(length = length_mm / 10) %>% 
   group_by(year, length) %>% 
-  summarize(freq = sum(total)) 
+  summarize(freq = sum(population_count)) 
   
 len$calc = len$freq*len$length
 
@@ -130,9 +130,9 @@ ggplot(comb, aes(mean.x, mean.y)) +
 
 # Summary of entire survey datasets
 all.bts = bts.sr.len %>% 
-  mutate(length = length / 10) %>% 
+  mutate(length = length_mm / 10) %>% 
   group_by(length) %>% 
-  summarize(freq = sum(total))
+  summarize(freq = sum(population_count))
 
 all.bts$calc = as.numeric(all.bts$freq)*as.numeric(all.bts$length)
 all.bts$survey = "BTS"

@@ -20,29 +20,33 @@ lls.sr.len <- dbGetQuery(channel_akfin,
   write_csv(paste0(dat_path, "/goa_sr_lls_lengths", YEAR, ".csv"))
 
 bts.sr.len <- dbGetQuery(channel_akfin, 
-                          "select    *
-                from      afsc.race_sizestratumaigoa 
-                where     species_code = '30576'") %>% 
-  rename_all(tolower) %>% 
-  filter(year > 1989, year < YEAR + 1, survey == "GOA") %>% 
-  write_csv(paste0(dat_path, "/goa_sr_bts_lengths", YEAR, ".csv"))
+           "select    *
+                from      gap_products.akfin_sizecomp
+                where     species_code = '30576' and
+                          SURVEY_DEFINITION_ID = 47 and 
+                          year > 1989 and
+                          length_mm > 0") %>% 
+  rename_all(tolower)
 
 # get age data to population
 bts.sr.age <- dbGetQuery(channel_akfin, 
                           "select    *
-                from      afsc.race_agecomptotalaigoa 
-                where     species_code = '30576'") %>% 
+                from      gap_products.akfin_agecomp 
+                where     species_code = '30576' and
+                          SURVEY_DEFINITION_ID = 47 and 
+                          year > 1989") %>% 
   rename_all(tolower) %>% 
-  filter(survey == "GOA") %>% 
   write_csv(paste0(dat_path, "/goa_sr_bts_ages", YEAR, ".csv"))
 
 # Age sample sizes
 bts.sr.spec <- dbGetQuery(channel_akfin, 
                          "select    *
-                from      afsc.race_specimenaigoa 
-                where     species_code = '30576'") %>% 
+                from      gap_products.akfin_specimen 
+                where     species_code = '30576' and
+                          SURVEY_DEFINITION_ID = 47 and 
+                          age > 0") %>% 
   rename_all(tolower) %>% 
-  filter(region == "GOA", age > 0) %>% 
+  filter(age > 0) %>% 
   mutate(survey_year = (cruise - 1) / 100) %>% 
   group_by(survey_year) %>% 
   summarize(Num = n())

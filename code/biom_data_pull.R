@@ -2,14 +2,12 @@ library(dplyr)
 library(DBI)
 library(keyring)
 
-YEAR = 2023
-
 # I get survey data from AKFIN and my credentials are stored with keyring
 db <- "akfin"
 channel_akfin <- DBI::dbConnect (odbc::odbc(),
                                  dsn = db,
-                                 uid = keyring::key_list(db)$username,
-                                 pwd =  keyring::key_get(db, keyring::key_list(db)$username))
+                                 uid = keyring::key_list(db)$username[1],
+                                 pwd =  keyring::key_get(db, keyring::key_list(db)$username[1]))
 
 # Get longline survey RPWs
 rpw <- dbGetQuery(channel_akfin, 
@@ -56,32 +54,39 @@ cpue_dat <- left_join(data.frame('year' = rep(unique(cpue$year), each = 3), 'str
 # Get bottom trawl survey biomass data
 biom <- dbGetQuery(channel_akfin, 
                    "select    *
-                from      afsc.race_biomassstratumaigoa
+                from      gap_products.akfin_biomass
                 where     species_code = '30576' and 
-                          survey = 'GOA' 
+                          survey_definition_id = 47
                 order by  year asc
                 ") %>% 
   rename_all(tolower)
 
-strata <- dbGetQuery(channel_akfin, 
-                     "select    *
-                from      afsc.race_goastrataaigoa
-                where     survey = 'GOA'
-                ") %>% 
-  rename_all(tolower)
-
-biom2 <- left_join(biom, strata, by = c("stratum"))  
 
 # Using all data like previous model
-biomass <- biom %>% 
-  mutate(strata = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
-                         ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
-                                ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
+biomass <- biom |> 
+  mutate(biomass_var = ifelse(is.na(biomass_var), (0.5 * biomass_mt) ^ 2, 
+                              ifelse(biomass_var == 0 & biomass_mt > 0, (0.5 * biomass_mt) ^ 2, biomass_var)),
+         strata = ifelse(area_id %in% c(10:15, 110:113, 210:211, 310, 410, 510:511), 'WGOA',
+                         ifelse(area_id %in% c(20:38, 120:136, 220:232, 32, 320:321, 330, 420, 430, 520:521, 530:531), 'CGOA',
+                                ifelse(area_id %in% c(40:51, 140:152, 240:252, 340:352, 440, 450, 540:541, 550:551), 'EGOA', NA)))) %>% 
+  filter(!is.na(strata)) %>% 
   group_by(year, strata) %>% 
-  summarize(n = n(), total_catch = sum(catch_count), biomass = sum(stratum_biomass, na.rm = TRUE),
+  summarize(n = sum(n_haul), biomass = sum(biomass_mt, na.rm = TRUE),
             cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
 
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
+
+biomass_old <- biom |> 
+         mutate(strata = ifelse(area_id %in% c(210, 310, 410, 510), 'WGOA',
+                                ifelse(area_id %in% c(220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
+                                       ifelse(area_id %in% c(240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
+  filter(!is.na(strata)) %>% 
+  group_by(year, strata) %>% 
+  summarize(n = sum(n_haul), biomass = sum(biomass_mt, na.rm = TRUE),
+            cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
+
+biomass_old_dat <- left_join(data.frame('year' = rep(unique(biomass_old$year), each = 3), 'strata' = rep(unique(biomass_old$strata), length(unique(biomass_old$year)))), biomass, by = c('year', 'strata')) %>% 
+  mutate(cv = ifelse (cv == 0, 0.1, cv))  
 
 model_yrs <- 1990:YEAR
 
@@ -102,4 +107,6 @@ model_yrs <- 1990:YEAR
 
 # This is the data that is brought into rema
 model_dat <- list('biomass_dat' = biomass_dat, 'cpue_dat' = cpue_dat, 
-                  'model_yrs' = model_yrs)
+                  'biomass_dat_old' = biomass_old_dat, 'model_yrs' = model_yrs)
+
+DBI::dbDisconnect(channel_akfin)
