@@ -31,7 +31,7 @@ bts.sr.len <- dbGetQuery(channel_akfin,
 # get age data to population
 bts.sr.age <- dbGetQuery(channel_akfin, 
                           "select    *
-                from      gap_products.akfin_agecomp 
+                from      gap_products.akfin_agecomp_v 
                 where     species_code = '30576' and
                           SURVEY_DEFINITION_ID = 47 and 
                           year > 1989") %>% 
@@ -41,14 +41,13 @@ bts.sr.age <- dbGetQuery(channel_akfin,
 # Age sample sizes
 bts.sr.spec <- dbGetQuery(channel_akfin, 
                          "select    *
-                from      gap_products.akfin_specimen 
+                from      gap_products.akfin_specimen_v 
                 where     species_code = '30576' and
                           SURVEY_DEFINITION_ID = 47 and 
                           age > 0") %>% 
   rename_all(tolower) %>% 
   filter(age > 0) %>% 
-  mutate(survey_year = (cruise - 1) / 100) %>% 
-  group_by(survey_year) %>% 
+  group_by(year) %>% 
   summarize(Num = n())
   
 #Fishery Lengths

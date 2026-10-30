@@ -2,6 +2,7 @@ library(dplyr)
 library(lubridate)
 library(DBI)
 library(keyring)
+library(ggplot2)
 
 # I get survey data from AKFIN and my credentials are stored with keyring
 db <- "akfin"
@@ -127,6 +128,7 @@ cowplot::plot_grid(ggplot(haul) +
                    ncol = 1)
 
 ggsave(file = paste0("results/", YEAR, "/combo_depth_effort.png"), height = 5, width = 6, dpi=600)
+
 # Now look at the lengths by survey...
 lls.sr.len2 <- lls.sr.len %>% 
   mutate(region = ifelse(council_sablefish_management_area == "Central Gulf of Alaska", "CGOA",
@@ -169,17 +171,18 @@ ggplot() +
 ggsave(file = paste0("results/", YEAR, "/LLS_reg_len.png"), height = 8, width = 6, dpi=600)
 
 # BTS
-bts.sr.len2 <- bts.sr.len %>% 
-  mutate(region = ifelse(stratum %in% c(10:13, 110:112, 210, 310, 410, 510), 'WGOA',
-                         ifelse(stratum %in% c(20:35, 120:134, 220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
-                                ifelse(stratum %in% c(40:50, 140:151, 240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA))))
+bts.sr.len2 <- bts.sr.len |> 
+  mutate(region = ifelse(area_id %in% c(10:15, 110:113, 210:211, 310, 410, 510:511), 'WGOA',
+                                         ifelse(area_id %in% c(20:38, 120:136, 220:232, 32, 320:321, 330, 420, 430, 520:521, 530:531), 'CGOA',
+                                                ifelse(area_id %in% c(40:51, 140:152, 240:252, 340:352, 440, 450, 540:541, 550:551), 'EGOA', NA)))) |> 
+  filter(!is.na(region))
 
 #####################
 # Group the BTS numbers by year/length
 len.agg <- bts.sr.len2 %>% 
-  mutate(length = length / 10) %>% 
+  mutate(length = length_mm / 10) %>% 
   group_by(year, length, region) %>% 
-  summarize(freq = sum(total))
+  summarize(freq = sum(population_count))
 
 len.disagg <- len.agg %>% 
   slice(rep(1:n(), freq)) %>% 
@@ -235,7 +238,7 @@ ggplot() +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
 
-ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=600)
+ggsave(file = paste0("results/", YEAR, "/all_len_by_reg.png"), height = 8, width = 6, dpi=300)
 
 # Time series with the annual mean length by survey
 ll.means$survey = "LLS"
@@ -254,4 +257,4 @@ ggplot(all.mean, aes(year, mean, col = survey)) +
   theme_bw() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
 
-ggsave(file = paste0("results/", YEAR, "/MeanLengths_TS.png"), height = 5, width = 10, dpi=600)
+ggsave(file = paste0("results/", YEAR, "/MeanLengths_TS.png"), height = 5, width = 10, dpi=300)

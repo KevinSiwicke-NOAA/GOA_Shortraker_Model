@@ -6,26 +6,29 @@
 # Pull length data
 source("code/other_data_pull.r")
 
+library(lubridate)
+library(sf)
+
 ####################
 # Group the BTS numbers by year/age
 age = bts.sr.age %>% 
   filter(age > 0) %>% 
-  group_by(age, survey_year) %>% 
-  summarize(freq = sum(agepop)) %>% 
+  group_by(age, year, area_id) %>% 
+  summarize(freq = sum(population_count)) %>% 
   mutate(calc = freq * age)
 
-means = age %>% group_by(survey_year) %>% 
+means = age %>% group_by(year) %>% 
   summarize(tot = sum(freq), l_calc = sum(calc)) %>% 
   mutate(mean = l_calc / tot) %>% 
   left_join(bts.sr.spec)
 
-age = merge(age, means, by=c("survey_year"))
+age = merge(age, means, by=c("year"))
 
 age %>%  
   ggplot(aes(x=age, y=after_stat(density), weight = freq)) +
   # theme_linedraw() +
   geom_histogram(alpha=0.25, binwidth=1, col="black") +
-  facet_wrap(~survey_year, ncol = 1) +
+  facet_wrap(~year, ncol = 1) +
   theme(legend.position = "top") +
   xlab("Age") +
   ylab("Proportion of trawl survey population") +
@@ -37,7 +40,7 @@ age %>%
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank()) 
 
-ggsave(file = paste0("results/", YEAR, "/SR_BTS_Ages.png"), height = 10, width = 5, dpi=600)
+ggsave(file = paste0(out_path, '/SR_BTS_Ages.png'), height = 10, width = 5, dpi=300)
 
 # Group the LL numbers by year/length
 ll.len = lls.sr.len %>% 
@@ -67,7 +70,7 @@ ll.len %>%
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
 
-ggsave(file=paste0("results/", YEAR, "/SR_LLS_Lengths.png"), height = 15, width = 12, dpi=600)
+ggsave(file=paste0(out_path, '/SR_LLS_Lengths.png'), height = 15, width = 12, dpi=300)
 
 ggplot(ll.len, aes(year, mean)) + geom_point() + geom_line()
 
@@ -104,7 +107,7 @@ len %>%
         theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
 
-ggsave(file = paste0("results/", YEAR, "/SR_BTS_Lengths.png"), height = 10, width = 7, dpi=600)
+ggsave(file =paste0(out_path, '/SR_BTS_Lengths.png'), height = 10, width = 7, dpi=300)
 
 len$survey = "BTS"
 
@@ -118,7 +121,7 @@ ggplot(ll.means, aes(year, mean))  +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
 
-ggsave(file = paste0("results/", YEAR, "/SR_Time_Series_length_Comp.png"), height = 3.5, width = 6, dpi=600)
+ggsave(file = paste0(out_path, '/SR_Time_Series_length_Comp.png'), height = 3.5, width = 6, dpi=600)
 
 # IS there a relationship between mean of LL lengths and mean of BTS lengthS?
 comb = merge(ll.means, means, by="year")
@@ -202,7 +205,7 @@ ggplot() +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), strip.background=element_blank(), 
         panel.grid.minor = element_blank(), panel.grid.major = element_blank(), strip.text=element_blank()) 
 
-ggsave(file = paste0("results/", YEAR, "/all_len.png"), height = 4, width = 6, dpi=600)
+ggsave(file = paste0(out_path, '/all_len.png'), height = 4, width = 6, dpi=300)
 # Alternative using ggridges
 
 # Fishery lengths
@@ -229,42 +232,54 @@ ggplot(lengths) +
   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), 
         panel.grid.minor = element_blank()) 
 
-ggsave(file = paste0("results/", YEAR, "/all_fish_region_len.png"), height = 8, width = 6, dpi=600)
+ggsave(file = paste0(out_path, '/all_fish_region_len.png'), height = 8, width = 6, dpi=300)
 
-# Fishery Catch
-catch <- fsh.sr.cat %>% 
-  filter(!agency_gear_code == "JIG") %>% # Use this if you want to remove some gear types (previous just had HAL and NPT)
-  group_by(year, agency_gear_code, region) %>% 
-  summarize(catch = sum(weight_posted))
-
-ggplot(data.frame(catch), aes(as.integer(year), catch, col = agency_gear_code, group = agency_gear_code)) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 2) +
-  scale_color_discrete(type = c('blue', 'red', 'orange', 'purple')) +
-  facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
-  labs(y = "Catch (t)", x = "Year", col = "Gear") +
-  scale_x_continuous(breaks=seq(2010,2025,5)) +
-  scale_y_continuous(expand = c(0,0), limits = c(0, 375)) +
-  theme_bw() +
-  theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
-
-ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
-
-# Exploitation
-# catch <- fsh.sr.cat %>% 
-#   group_by(year, agency_gear_code, region) %>% 
+# Fishery Catch (has some confidential data so don't plot)
+# catch <- data.frame(fsh.sr.cat %>% 
+#   filter(!agency_gear_code == "JIG") %>% # Use this if you want to remove some gear types (previous just had HAL and NPT)
+#   group_by(year = as.integer(year), agency_gear_code, region) %>% 
 #   summarize(catch = sum(weight_posted))
-# 
-# ggplot(catch, aes(year, catch, col = agency_gear_code)) +
-#   geom_line() +
+# )
+
+# ggplot(catch, aes(year, catch, col = agency_gear_code, group = agency_gear_code)) +
+#   geom_line(linewidth = 1.2) +
 #   geom_point(size = 2) +
-#   # scale_color_discrete(type = list(c("red", "blue"))) +
-#   # geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd)) +
+#   scale_color_discrete(type = c('blue', 'red', 'orange', 'purple')) +
 #   facet_grid(~factor(region, levels=c('WGOA', 'CGOA', 'EGOA'))) +
 #   labs(y = "Catch (t)", x = "Year", col = "Gear") +
 #   scale_x_continuous(breaks=seq(2010,2025,5)) +
-#   scale_y_continuous(expand = c(0,0)) +
+#   scale_y_continuous(expand = c(0,0), limits = c(0, 375)) +
 #   theme_bw() +
 #   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())
 # 
 # ggsave(file = paste0("results/", YEAR, "/Catch_TS.png"), height = 5, width = 10, dpi=600)
+
+
+# 
+# stat_cat <- data.frame(fsh.sr.cat %>% 
+#                       group_by(adfg_stat_area_code, year = as.integer(year), agency_gear_code, region) |> 
+#                       summarize(catch = sum(weight_posted))
+# )
+# 
+# 
+# stat_areas <- st_read("data/adfg_stat_areas/PVG_Statewide_2001_Present_GCS_WGS1984.shp")
+# 
+# stat_plot <- left_join(stat_areas, stat_cat |> mutate(STAT_AREA = as.double(adfg_stat_area_code)))
+# 
+# ggplot(data = stat_plot |> filter(year > 2020, region == 'CGOA', !agency_gear_code == 'JIG')) +
+#   geom_sf(aes(fill = catch)) + # optional: fill based on an attribute
+#   scale_fill_viridis_c() +
+#   facet_grid(agency_gear_code~year)
+# 
+# month_cat <- data.frame(fsh.sr.cat %>% 
+#                          group_by(month = month(catch_activity_date), year = year(catch_activity_date), agency_gear_code, region) |> 
+#                          summarize(catch = sum(weight_posted))
+# )
+# 
+# ggplot(month_cat |> filter(year > 2020, !agency_gear_code == 'JIG'), aes(month, catch, fill = agency_gear_code)) +
+#   geom_col() +
+#   labs(y = "Catch (t)", x = "DOY") +
+#   facet_grid(year~region) +
+#   scale_x_continuous(breaks = c(1:12)) +
+#   theme_bw() +
+#   theme(axis.title=element_text(size=14), axis.text=element_text(size=12), panel.grid.minor = element_blank())

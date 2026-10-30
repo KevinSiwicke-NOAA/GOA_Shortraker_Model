@@ -6,7 +6,7 @@
 # Set up ----
 
 # assessment year
-YEAR <- 2025
+YEAR <- 2026
 
 # Consider whether the rema package needs to be 'updated' - will need to update to get new extra_cv fxns
 # install.packages("devtools")
@@ -136,7 +136,7 @@ ggplot(appo_std, aes(year, proportion_std)) +
   coord_flip() +
   labs(x = NULL, y = 'Proportion', fill = 'Region')
 
-ggsave(filename = paste0(out_path, '/m19s_m23.3_appo_std.png'),
+ggsave(filename = paste0(out_path, '/m23.3_appo_std.png'),
        dpi = 600, bg = 'white', units = 'in', height = 8.5, width = 10)
 
 # These are just for comparison to BTS only apportionment
@@ -178,7 +178,7 @@ ggplot(appo_combo, aes(year, proportion)) +
   coord_flip() +
   labs(x = NULL, y = 'Proportion', fill = 'Region')
 
-ggsave(filename = paste0(out_path, '/m19s_m23.3_appo_fig.png'),
+ggsave(filename = paste0(out_path, '/m23.3_appo_fig.png'),
        dpi = 600, bg = 'white', units = 'in', height = 8.5, width = 10)
 
 full_sumtable_combo <- appo_combo %>%

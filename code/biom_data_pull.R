@@ -76,17 +76,17 @@ biomass <- biom |>
 
 biomass_dat <- left_join(data.frame('year' = rep(unique(biomass$year), each = 3), 'strata' = rep(unique(biomass$strata), length(unique(biomass$year)))), biomass, by = c('year', 'strata'))
 
-biomass_old <- biom |> 
-         mutate(strata = ifelse(area_id %in% c(210, 310, 410, 510), 'WGOA',
-                                ifelse(area_id %in% c(220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
-                                       ifelse(area_id %in% c(240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
-  filter(!is.na(strata)) %>% 
-  group_by(year, strata) %>% 
-  summarize(n = sum(n_haul), biomass = sum(biomass_mt, na.rm = TRUE),
-            cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
-
-biomass_old_dat <- left_join(data.frame('year' = rep(unique(biomass_old$year), each = 3), 'strata' = rep(unique(biomass_old$strata), length(unique(biomass_old$year)))), biomass, by = c('year', 'strata')) %>% 
-  mutate(cv = ifelse (cv == 0, 0.1, cv))  
+# biomass_old <- biom |> 
+#          mutate(strata = ifelse(area_id %in% c(210, 310, 410, 510), 'WGOA',
+#                                 ifelse(area_id %in% c(220:232, 32, 320, 330, 420, 430, 520, 530), 'CGOA',
+#                                        ifelse(area_id %in% c(240:251, 340:351, 440, 450, 540, 550), 'EGOA', NA)))) %>% 
+#   filter(!is.na(strata)) %>% 
+#   group_by(year, strata) %>% 
+#   summarize(n = sum(n_haul), biomass = sum(biomass_mt, na.rm = TRUE),
+#             cv = sqrt(sum(biomass_var, na.rm = TRUE))/biomass) 
+# 
+# biomass_old_dat <- left_join(data.frame('year' = rep(unique(biomass_old$year), each = 3), 'strata' = rep(unique(biomass_old$strata), length(unique(biomass_old$year)))), biomass, by = c('year', 'strata')) %>% 
+#   mutate(cv = ifelse (cv == 0, 0.1, cv))  
 
 model_yrs <- 1990:YEAR
 
@@ -106,7 +106,6 @@ model_yrs <- 1990:YEAR
 #   facet_wrap(~strata)
 
 # This is the data that is brought into rema
-model_dat <- list('biomass_dat' = biomass_dat, 'cpue_dat' = cpue_dat, 
-                  'biomass_dat_old' = biomass_old_dat, 'model_yrs' = model_yrs)
+model_dat <- list('biomass_dat' = biomass_dat, 'cpue_dat' = cpue_dat, 'model_yrs' = model_yrs) # 'biomass_dat_old' = biomass_old_dat, 
 
 DBI::dbDisconnect(channel_akfin)
